@@ -45,6 +45,8 @@ const mealLabels: Record<MealType, string> = {
   SNACK: '간식',
 }
 
+type ActionKey = 'profile' | 'calorie' | 'meal' | 'refresh'
+
 function hasValidProfileInput(profileForm: UserProfileRequest) {
   return profileForm.age > 0 && profileForm.height > 0 && profileForm.weight > 0
 }
@@ -68,7 +70,8 @@ function App() {
   const [dailyLogs, setDailyLogs] = useState<DailyMealLogResponse | null>(null)
   const [dailyReport, setDailyReport] = useState<DailyReportResponse | null>(null)
   const [notice, setNotice] = useState('백엔드 서버를 켠 뒤 바로 시연할 수 있습니다.')
-  const [isLoading, setIsLoading] = useState(false)
+  const [pendingAction, setPendingAction] = useState<ActionKey | null>(null)
+  const isBusy = pendingAction !== null
 
   useEffect(() => {
     api
@@ -90,15 +93,35 @@ function App() {
   const expectedCalories = selectedFood ? selectedFood.calories * quantity : 0
   const hasMealLogs = Boolean(dailyLogs?.mealLogs.length)
 
-  async function runAction(action: () => Promise<void>, successMessage: string) {
-    setIsLoading(true)
+  // 리포트와 날짜별 기록은 "저장된 프로필" 기준으로 계산되므로,
+  // 현재 폼 입력값이 저장된 프로필과 다르면 사용자에게 저장이 필요함을 안내한다.
+  const isProfileDirty = useMemo(() => {
+    if (!profile) {
+      return false
+    }
+    return (
+      profile.gender !== profileForm.gender ||
+      profile.age !== profileForm.age ||
+      profile.height !== profileForm.height ||
+      profile.weight !== profileForm.weight ||
+      profile.activityLevel !== profileForm.activityLevel ||
+      profile.goalType !== profileForm.goalType
+    )
+  }, [profile, profileForm])
+
+  async function runAction(
+    key: ActionKey,
+    action: () => Promise<void>,
+    successMessage: string,
+  ) {
+    setPendingAction(key)
     try {
       await action()
       setNotice(successMessage)
     } catch (error) {
       setNotice(error instanceof Error ? error.message : '요청 처리에 실패했습니다.')
     } finally {
-      setIsLoading(false)
+      setPendingAction(null)
     }
   }
 
@@ -117,7 +140,7 @@ function App() {
       return
     }
 
-    await runAction(async () => {
+    await runAction('profile', async () => {
       const createdProfile = await api.createProfile(profileForm)
       setProfile(createdProfile)
       setCalorieResult(null)
@@ -132,10 +155,10 @@ function App() {
       return
     }
 
-    await runAction(async () => {
+    await runAction('calorie', async () => {
       const result = await api.calculateCalories(profileForm)
       setCalorieResult(result.recommendedCalories)
-    }, '권장 칼로리를 계산했습니다.')
+    }, '권장 칼로리를 계산했습니다. (현재 입력값 기준이며, 리포트는 저장된 프로필 기준입니다.)')
   }
 
   async function handleCreateMealLog(event: FormEvent<HTMLFormElement>) {
@@ -161,7 +184,7 @@ function App() {
       return
     }
 
-    await runAction(async () => {
+    await runAction('meal', async () => {
       await api.createMealLog({
         profileId: profile.profileId,
         mealDate,
@@ -193,7 +216,7 @@ function App() {
       return
     }
 
-    await runAction(async () => {
+    await runAction('refresh', async () => {
       await refreshDailyData()
     }, '날짜별 기록과 리포트를 조회했습니다.')
   }
@@ -233,13 +256,20 @@ function App() {
         {notice}
       </p>
 
+      {isProfileDirty && profile && (
+        <p className="notice notice-warning" role="status">
+          현재 입력값이 저장된 프로필(#{profile.profileId})과 다릅니다. 권장 칼로리 리포트와 날짜별 기록은
+          저장된 프로필 기준으로 계산되므로, 변경한 목표·신체 정보를 반영하려면 프로필을 다시 저장하세요.
+        </p>
+      )}
+
       <div className="workbench">
         <section className="panel">
           <div className="panel-heading">
             <h2>프로필</h2>
-            <button type="button" onClick={handleCalculateCalories} disabled={isLoading}>
+            <button type="button" onClick={handleCalculateCalories} disabled={isBusy}>
               <Calculator size={18} aria-hidden="true" />
-              계산
+              {pendingAction === 'calorie' ? '계산 중…' : '계산'}
             </button>
           </div>
 
@@ -311,9 +341,9 @@ function App() {
                 ))}
               </select>
             </label>
-            <button type="submit" className="primary-action" disabled={isLoading}>
+            <button type="submit" className="primary-action" disabled={isBusy}>
               <Save size={18} aria-hidden="true" />
-              저장
+              {pendingAction === 'profile' ? '저장 중…' : '저장'}
             </button>
           </form>
         </section>
@@ -321,9 +351,9 @@ function App() {
         <section className="panel">
           <div className="panel-heading">
             <h2>식단 기록</h2>
-            <button type="button" onClick={handleRefreshDailyData} disabled={isLoading}>
+            <button type="button" onClick={handleRefreshDailyData} disabled={isBusy}>
               <RefreshCw size={18} aria-hidden="true" />
-              조회
+              {pendingAction === 'refresh' ? '조회 중…' : '조회'}
             </button>
           </div>
 
@@ -383,10 +413,10 @@ function App() {
             <button
               type="submit"
               className="primary-action"
-              disabled={isLoading || !foods.length}
+              disabled={isBusy || !foods.length}
             >
               <CalendarDays size={18} aria-hidden="true" />
-              기록
+              {pendingAction === 'meal' ? '기록 중…' : '기록'}
             </button>
           </form>
           {!foods.length && (

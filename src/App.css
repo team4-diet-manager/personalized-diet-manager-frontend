@@ -99,6 +99,12 @@ h2 {
   font-weight: 650;
 }
 
+.notice-warning {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  color: #92400e;
+}
+
 .workbench {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
