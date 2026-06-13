@@ -77,13 +77,19 @@ interface ErrorResponse {
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...init?.headers,
-    },
-    ...init,
-  })
+  let response: Response
+
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...init?.headers,
+      },
+      ...init,
+    })
+  } catch {
+    throw new Error('백엔드 서버에 연결할 수 없습니다. 서버 실행 상태를 확인해주세요.')
+  }
 
   if (!response.ok) {
     const error = (await response.json().catch(() => ({}))) as ErrorResponse
@@ -95,7 +101,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     return undefined as T
   }
 
-  return response.json() as Promise<T>
+  return response.json().catch(() => {
+    throw new Error('서버 응답을 읽을 수 없습니다.')
+  }) as Promise<T>
 }
 
 export const api = {

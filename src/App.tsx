@@ -45,6 +45,10 @@ const mealLabels: Record<MealType, string> = {
   SNACK: '간식',
 }
 
+function hasValidProfileInput(profileForm: UserProfileRequest) {
+  return profileForm.age > 0 && profileForm.height > 0 && profileForm.weight > 0
+}
+
 function App() {
   const [profileForm, setProfileForm] = useState<UserProfileRequest>({
     gender: 'FEMALE',
@@ -84,6 +88,7 @@ function App() {
   )
 
   const expectedCalories = selectedFood ? selectedFood.calories * quantity : 0
+  const hasMealLogs = Boolean(dailyLogs?.mealLogs.length)
 
   async function runAction(action: () => Promise<void>, successMessage: string) {
     setIsLoading(true)
@@ -106,6 +111,12 @@ function App() {
 
   async function handleCreateProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+
+    if (!hasValidProfileInput(profileForm)) {
+      setNotice('나이, 키, 몸무게는 모두 1 이상이어야 합니다.')
+      return
+    }
+
     await runAction(async () => {
       const createdProfile = await api.createProfile(profileForm)
       setProfile(createdProfile)
@@ -116,6 +127,11 @@ function App() {
   }
 
   async function handleCalculateCalories() {
+    if (!hasValidProfileInput(profileForm)) {
+      setNotice('나이, 키, 몸무게는 모두 1 이상이어야 합니다.')
+      return
+    }
+
     await runAction(async () => {
       const result = await api.calculateCalories(profileForm)
       setCalorieResult(result.recommendedCalories)
@@ -127,6 +143,21 @@ function App() {
 
     if (!profile) {
       setNotice('프로필을 먼저 저장해주세요.')
+      return
+    }
+
+    if (!selectedFood) {
+      setNotice('음식 목록을 불러온 뒤 식단을 기록할 수 있습니다.')
+      return
+    }
+
+    if (!mealDate) {
+      setNotice('식단 기록 날짜를 선택해주세요.')
+      return
+    }
+
+    if (quantity < 1) {
+      setNotice('섭취 수량은 1 이상이어야 합니다.')
       return
     }
 
@@ -157,6 +188,11 @@ function App() {
   }
 
   async function handleRefreshDailyData() {
+    if (!mealDate) {
+      setNotice('조회할 날짜를 선택해주세요.')
+      return
+    }
+
     await runAction(async () => {
       await refreshDailyData()
     }, '날짜별 기록과 리포트를 조회했습니다.')
@@ -315,12 +351,20 @@ function App() {
             </label>
             <label className="wide">
               음식
-              <select value={foodId} onChange={(event) => setFoodId(Number(event.target.value))}>
-                {foods.map((food) => (
-                  <option key={food.foodId} value={food.foodId}>
-                    {food.name} / {food.calories}kcal / {food.servingSize}
-                  </option>
-                ))}
+              <select
+                value={foodId}
+                onChange={(event) => setFoodId(Number(event.target.value))}
+                disabled={!foods.length}
+              >
+                {foods.length ? (
+                  foods.map((food) => (
+                    <option key={food.foodId} value={food.foodId}>
+                      {food.name} / {food.calories}kcal / {food.servingSize}
+                    </option>
+                  ))
+                ) : (
+                  <option value={foodId}>음식 목록을 불러오지 못했습니다</option>
+                )}
               </select>
             </label>
             <label>
@@ -336,18 +380,30 @@ function App() {
               <Apple size={18} aria-hidden="true" />
               <span>{expectedCalories} kcal</span>
             </div>
-            <button type="submit" className="primary-action" disabled={isLoading}>
+            <button
+              type="submit"
+              className="primary-action"
+              disabled={isLoading || !foods.length}
+            >
               <CalendarDays size={18} aria-hidden="true" />
               기록
             </button>
           </form>
+          {!foods.length && (
+            <p className="helper-message">
+              백엔드 서버가 켜져 있지 않거나 음식 데이터가 비어 있으면 식단을 기록할 수 없습니다.
+            </p>
+          )}
         </section>
       </div>
 
       <section className="records">
         <div className="panel-heading">
           <h2>날짜별 기록</h2>
-          <span>{dailyReport?.message ?? '조회 결과가 여기에 표시됩니다.'}</span>
+          <span>
+            {dailyReport?.message ??
+              (dailyLogs ? '선택한 날짜에 등록된 식단 기록이 없습니다.' : '조회 결과가 여기에 표시됩니다.')}
+          </span>
         </div>
         <div className="table-wrap">
           <table>
@@ -368,9 +424,13 @@ function App() {
                   <td>{log.totalCalories} kcal</td>
                 </tr>
               ))}
-              {!dailyLogs?.mealLogs.length && (
+              {!hasMealLogs && (
                 <tr>
-                  <td colSpan={4}>등록된 식단 기록이 없습니다.</td>
+                  <td colSpan={4}>
+                    {dailyLogs
+                      ? '선택한 날짜에 등록된 식단 기록이 없습니다.'
+                      : '날짜별 기록을 조회하면 이곳에 표시됩니다.'}
+                  </td>
                 </tr>
               )}
             </tbody>
