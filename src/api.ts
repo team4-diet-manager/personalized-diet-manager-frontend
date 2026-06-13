@@ -18,11 +18,16 @@ export interface UserProfileResponse extends UserProfileRequest {
 
 export type CalorieRequest = UserProfileRequest
 
+export interface MacroNutrients {
+  proteinGrams: number
+  carbGrams: number
+  fatGrams: number
+}
+
 export interface CalorieResponse {
   goalType: GoalType
   recommendedCalories: number
-  dailyIntakeCalories: number
-  calorieGap: number
+  macros: MacroNutrients
 }
 
 export interface FoodResponse {
@@ -67,6 +72,7 @@ export interface DailyReportResponse {
   difference: number
   status: 'UNDER' | 'OVER' | 'MATCH'
   message: string
+  recommendedMacros: MacroNutrients
 }
 
 interface ErrorResponse {
