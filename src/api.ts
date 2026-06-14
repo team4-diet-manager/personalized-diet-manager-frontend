@@ -98,6 +98,16 @@ interface ErrorResponse {
   fieldErrors?: Array<{ field: string; message: string }>
 }
 
+/** HTTP 상태코드를 함께 전달하는 API 오류 */
+export class ApiError extends Error {
+  readonly status: number
+  constructor(message: string, status: number) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+  }
+}
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -118,7 +128,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!response.ok) {
     const error = (await response.json().catch(() => ({}))) as ErrorResponse
     const fieldMessage = error.fieldErrors?.map((item) => item.message).join('\n')
-    throw new Error(fieldMessage || error.message || '요청 처리에 실패했습니다.')
+    throw new ApiError(
+      fieldMessage || error.message || '요청 처리에 실패했습니다.',
+      response.status,
+    )
   }
 
   if (response.status === 204) {

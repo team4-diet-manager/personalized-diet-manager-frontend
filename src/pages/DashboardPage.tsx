@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { RefreshCw, Utensils } from 'lucide-react'
-import { api } from '../api'
+import { api, ApiError } from '../api'
 import type { DailyReportResponse, WeeklyReportResponse } from '../api'
 import { localDateString } from '../constants'
 import { useProfile } from '../context/ProfileContext'
@@ -12,7 +12,7 @@ import { WeeklyTrend } from '../components/WeeklyTrend'
 
 export function DashboardPage() {
   const navigate = useNavigate()
-  const { profile } = useProfile()
+  const { profile, setProfile } = useProfile()
   const [date, setDate] = useState(() => localDateString())
   const [report, setReport] = useState<DailyReportResponse | null>(null)
   const [weekly, setWeekly] = useState<WeeklyReportResponse | null>(null)
@@ -26,20 +26,29 @@ export function DashboardPage() {
       }
       setIsLoading(true)
       try {
-        const [daily, week] = await Promise.all([
-          api.getDailyReport(profile.profileId, targetDate),
-          api.getWeeklyReport(profile.profileId, targetDate),
-        ])
+        const daily = await api.getDailyReport(profile.profileId, targetDate)
         setReport(daily)
-        setWeekly(week)
         setNotice(null)
       } catch (error) {
+        // 저장된 프로필이 서버에 없으면(예: 서버 재시작으로 인메모리 DB 초기화) 온보딩부터 다시.
+        if (error instanceof ApiError && error.status === 404) {
+          setProfile(null)
+          return
+        }
         setNotice(error instanceof Error ? error.message : '리포트 조회에 실패했습니다.')
       } finally {
         setIsLoading(false)
       }
+
+      // 주간 추이는 실패해도 일일 리포트 표시에 영향을 주지 않도록 분리한다.
+      try {
+        const week = await api.getWeeklyReport(profile.profileId, targetDate)
+        setWeekly(week)
+      } catch {
+        setWeekly(null)
+      }
     },
-    [profile],
+    [profile, setProfile],
   )
 
   // 선택한 날짜(자동 이동 포함)가 바뀌면 해당 날짜 리포트를 다시 불러온다.
