@@ -11,6 +11,19 @@ import { FoodCombobox } from '../components/FoodCombobox'
 // 식단 테이블에서 식사 구분을 표시할 순서
 const MEAL_ORDER: MealType[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK']
 
+// 최근 기록한 음식(자주 쓰는 음식 빠른 추가용)
+const RECENT_FOODS_KEY = 'pdm.recentFoods'
+const RECENT_FOODS_MAX = 5
+
+function loadRecentFoodIds(): number[] {
+  try {
+    const raw = localStorage.getItem(RECENT_FOODS_KEY)
+    return raw ? (JSON.parse(raw) as number[]) : []
+  } catch {
+    return []
+  }
+}
+
 export function MealLogPage() {
   const { profile, foods, foodsError } = useProfile()
   const [date, setDate] = useState(() => localDateString())
@@ -27,6 +40,25 @@ export function MealLogPage() {
   const [logs, setLogs] = useState<DailyMealLogResponse | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [isBusy, setIsBusy] = useState(false)
+  const [recentFoodIds, setRecentFoodIds] = useState<number[]>(loadRecentFoodIds)
+
+  // 최근 음식 목록 맨 앞에 추가(중복 제거, 최대 개수 유지) 후 localStorage에 저장.
+  function pushRecentFood(id: number) {
+    setRecentFoodIds((prev) => {
+      const next = [id, ...prev.filter((value) => value !== id)].slice(0, RECENT_FOODS_MAX)
+      localStorage.setItem(RECENT_FOODS_KEY, JSON.stringify(next))
+      return next
+    })
+  }
+
+  // 실제 음식 목록에 존재하는 최근 음식만 칩으로 노출한다.
+  const recentFoods = useMemo(
+    () =>
+      recentFoodIds
+        .map((id) => foods.find((food) => food.foodId === id))
+        .filter((food): food is NonNullable<typeof food> => Boolean(food)),
+    [recentFoodIds, foods],
+  )
 
   const selectedFood = useMemo(
     () => foods.find((food) => food.foodId === foodId),
@@ -117,10 +149,36 @@ export function MealLogPage() {
         setNotice('식단 기록이 수정되었습니다.')
       } else {
         await api.createMealLog(body)
+        pushRecentFood(foodId)
         setNotice('식단 기록이 저장되었습니다.')
       }
       resetForm()
       await loadLogs(date)
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : '식단 기록에 실패했습니다.')
+    } finally {
+      setIsBusy(false)
+    }
+  }
+
+  // 최근 음식 칩: 현재 날짜·식사 구분으로 수량 1로 바로 기록한다.
+  async function quickAdd(quickFoodId: number) {
+    if (!profile) {
+      return
+    }
+    setIsBusy(true)
+    try {
+      await api.createMealLog({
+        profileId: profile.profileId,
+        mealDate: date,
+        mealType,
+        foodId: quickFoodId,
+        quantity: 1,
+      })
+      pushRecentFood(quickFoodId)
+      await loadLogs(date)
+      const added = foods.find((food) => food.foodId === quickFoodId)
+      setNotice(`${mealLabels[mealType]}에 ${added?.name ?? '음식'}을(를) 추가했습니다.`)
     } catch (error) {
       setNotice(error instanceof Error ? error.message : '식단 기록에 실패했습니다.')
     } finally {
@@ -151,6 +209,27 @@ export function MealLogPage() {
           <p className="notice notice-info wide" role="status">
             기록을 수정하는 중입니다.
           </p>
+        )}
+        {!isEditing && recentFoods.length > 0 && (
+          <div className="recent-foods wide">
+            <span className="recent-foods-label">
+              최근 음식 · {mealLabels[mealType]}에 바로 추가
+            </span>
+            <div className="recent-foods-chips">
+              {recentFoods.map((food) => (
+                <button
+                  type="button"
+                  key={food.foodId}
+                  className="food-chip"
+                  onClick={() => quickAdd(food.foodId)}
+                  disabled={isBusy}
+                >
+                  + {food.name}
+                  <span className="food-chip-kcal">{food.calories}kcal</span>
+                </button>
+              ))}
+            </div>
+          </div>
         )}
         <label>
           날짜
