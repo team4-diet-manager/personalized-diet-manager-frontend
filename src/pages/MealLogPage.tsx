@@ -52,7 +52,6 @@ export function MealLogPage() {
     setQuantity(1)
     if (foods[0]) {
       setFoodId(foods[0].foodId)
-      setFoodInput(foods[0].name)
     }
   }
 
@@ -60,7 +59,6 @@ export function MealLogPage() {
     setEditingId(log.mealLogId)
     setMealType(log.mealType)
     setFoodId(log.foodId)
-    setFoodInput(log.foodName)
     setQuantity(log.quantity)
     setNotice(null)
   }
