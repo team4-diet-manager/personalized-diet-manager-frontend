@@ -2,18 +2,20 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { RefreshCw, Utensils } from 'lucide-react'
 import { api } from '../api'
-import type { DailyReportResponse } from '../api'
+import type { DailyReportResponse, WeeklyReportResponse } from '../api'
 import { localDateString } from '../constants'
 import { useProfile } from '../context/ProfileContext'
 import { useDailyRollover } from '../hooks/useDailyRollover'
 import { CalorieRing } from '../components/CalorieRing'
 import { MacroBars } from '../components/MacroBars'
+import { WeeklyTrend } from '../components/WeeklyTrend'
 
 export function DashboardPage() {
   const navigate = useNavigate()
   const { profile } = useProfile()
   const [date, setDate] = useState(() => localDateString())
   const [report, setReport] = useState<DailyReportResponse | null>(null)
+  const [weekly, setWeekly] = useState<WeeklyReportResponse | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -24,8 +26,12 @@ export function DashboardPage() {
       }
       setIsLoading(true)
       try {
-        const data = await api.getDailyReport(profile.profileId, targetDate)
-        setReport(data)
+        const [daily, week] = await Promise.all([
+          api.getDailyReport(profile.profileId, targetDate),
+          api.getWeeklyReport(profile.profileId, targetDate),
+        ])
+        setReport(daily)
+        setWeekly(week)
         setNotice(null)
       } catch (error) {
         setNotice(error instanceof Error ? error.message : '리포트 조회에 실패했습니다.')
@@ -89,6 +95,15 @@ export function DashboardPage() {
             <Utensils size={18} aria-hidden="true" />
             식단 기록하러 가기
           </button>
+        </section>
+
+        <section className="card trend-card">
+          <h2>최근 7일 칼로리 추이</h2>
+          {weekly && weekly.days.some((day) => day.intakeCalories > 0) ? (
+            <WeeklyTrend days={weekly.days} />
+          ) : (
+            <p className="card-msg">최근 7일 동안 기록한 식단이 표시됩니다.</p>
+          )}
         </section>
       </div>
     </div>

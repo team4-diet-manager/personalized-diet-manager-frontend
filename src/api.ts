@@ -82,6 +82,17 @@ export interface DailyReportResponse {
   intakeMacros: MacroNutrients
 }
 
+export interface WeeklyReportDay {
+  date: string
+  recommendedCalories: number
+  intakeCalories: number
+}
+
+export interface WeeklyReportResponse {
+  profileId: number
+  days: WeeklyReportDay[]
+}
+
 interface ErrorResponse {
   message?: string
   fieldErrors?: Array<{ field: string; message: string }>
@@ -157,4 +168,8 @@ export const api = {
     request<DailyMealLogResponse>(`/api/meal-logs?profileId=${profileId}&date=${date}`),
   getDailyReport: (profileId: number, date: string) =>
     request<DailyReportResponse>(`/api/reports/daily?profileId=${profileId}&date=${date}`),
+  getWeeklyReport: (profileId: number, endDate: string) =>
+    request<WeeklyReportResponse>(
+      `/api/reports/weekly?profileId=${profileId}&endDate=${endDate}`,
+    ),
 }

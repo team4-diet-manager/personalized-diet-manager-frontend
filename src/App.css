@@ -98,6 +98,13 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 .ring-card, .macro-card { display: flex; flex-direction: column; }
 .card-msg { margin: 14px 0 0; color: #64748b; font-size: 14px; text-align: center; }
 
+/* 주간 칼로리 추이 차트 */
+.trend-card { grid-column: 1 / -1; }
+.weekly-trend { width: 100%; height: auto; }
+.weekly-trend .trend-axis { fill: #64748b; font-size: 11px; font-weight: 700; }
+.weekly-trend .trend-value { fill: #334155; font-size: 9px; font-weight: 700; }
+.weekly-trend .trend-rec-label { fill: #64748b; font-size: 10px; font-weight: 700; }
+
 .ring-wrap { position: relative; display: grid; place-items: center; padding: 8px 0; }
 .ring-center { position: absolute; display: grid; justify-items: center; gap: 2px; text-align: center; }
 .ring-center strong { font-size: 34px; color: #111827; line-height: 1; }
