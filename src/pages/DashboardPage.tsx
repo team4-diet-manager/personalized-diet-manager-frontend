@@ -3,15 +3,16 @@ import { useNavigate } from 'react-router-dom'
 import { RefreshCw, Utensils } from 'lucide-react'
 import { api } from '../api'
 import type { DailyReportResponse } from '../api'
-import { today } from '../constants'
+import { localDateString } from '../constants'
 import { useProfile } from '../context/ProfileContext'
+import { useDailyRollover } from '../hooks/useDailyRollover'
 import { CalorieRing } from '../components/CalorieRing'
 import { MacroBars } from '../components/MacroBars'
 
 export function DashboardPage() {
   const navigate = useNavigate()
   const { profile } = useProfile()
-  const [date, setDate] = useState(today)
+  const [date, setDate] = useState(() => localDateString())
   const [report, setReport] = useState<DailyReportResponse | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -35,9 +36,15 @@ export function DashboardPage() {
     [profile],
   )
 
+  // 선택한 날짜(자동 이동 포함)가 바뀌면 해당 날짜 리포트를 다시 불러온다.
   useEffect(() => {
-    loadReport(today)
-  }, [loadReport])
+    loadReport(date)
+  }, [loadReport, date])
+
+  // 자정이 지나면, 오늘을 보고 있던 경우에만 새 날짜로 자동 이동한다.
+  useDailyRollover((newToday, prevToday) => {
+    setDate((current) => (current === prevToday ? newToday : current))
+  })
 
   return (
     <div className="dashboard-page">

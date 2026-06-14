@@ -3,13 +3,20 @@ import type { FormEvent } from 'react'
 import { Apple, CalendarDays, Pencil, Trash2, X } from 'lucide-react'
 import { api } from '../api'
 import type { DailyMealLogResponse, MealLogResponse, MealType } from '../api'
-import { mealLabels, today } from '../constants'
+import { localDateString, mealLabels } from '../constants'
 import { useProfile } from '../context/ProfileContext'
+import { useDailyRollover } from '../hooks/useDailyRollover'
 import { FoodCombobox } from '../components/FoodCombobox'
 
 export function MealLogPage() {
   const { profile, foods, foodsError } = useProfile()
-  const [date, setDate] = useState(today)
+  const [date, setDate] = useState(() => localDateString())
+
+  // 자정이 지나면, 오늘을 보고 있던 경우에만 새 날짜로 자동 이동한다.
+  // (날짜가 바뀌면 아래 자동 재조회로 새 날의 빈 기록이 표시됨. 과거 데이터는 DB에 그대로 보존)
+  useDailyRollover((newToday, prevToday) => {
+    setDate((current) => (current === prevToday ? newToday : current))
+  })
   const [mealType, setMealType] = useState<MealType>('LUNCH')
   const [foodId, setFoodId] = useState<number | null>(null)
   const [quantity, setQuantity] = useState(1)
