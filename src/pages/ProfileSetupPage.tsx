@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Save } from 'lucide-react'
@@ -9,9 +9,25 @@ import { useProfile } from '../context/ProfileContext'
 
 export function ProfileSetupPage() {
   const navigate = useNavigate()
-  const { profileForm, updateProfileForm, setProfile } = useProfile()
+  const { profileForm, updateProfileForm, profile, setProfile } = useProfile()
   const [notice, setNotice] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+
+  const isEditing = profile !== null
+
+  // 이미 저장된 프로필이 있으면(수정 진입) 폼에 현재 값을 채워 넣는다.
+  useEffect(() => {
+    if (profile) {
+      updateProfileForm('gender', profile.gender)
+      updateProfileForm('age', profile.age)
+      updateProfileForm('height', profile.height)
+      updateProfileForm('weight', profile.weight)
+      updateProfileForm('activityLevel', profile.activityLevel)
+      updateProfileForm('goalType', profile.goalType)
+    }
+    // 진입 시 1회만 동기화한다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -23,8 +39,11 @@ export function ProfileSetupPage() {
 
     setIsSaving(true)
     try {
-      const created = await api.createProfile(profileForm)
-      setProfile(created)
+      // 저장된 프로필이 있으면 수정(PUT), 없으면 신규 생성(POST)한다.
+      const saved = profile
+        ? await api.updateProfile(profile.profileId, profileForm)
+        : await api.createProfile(profileForm)
+      setProfile(saved)
       navigate('/dashboard')
     } catch (error) {
       setNotice(error instanceof Error ? error.message : '프로필 저장에 실패했습니다.')
@@ -36,8 +55,8 @@ export function ProfileSetupPage() {
   return (
     <div className="step-page">
       <div className="step-head">
-        <span className="step-badge">STEP 2 / 2</span>
-        <h1>신체 정보를 입력해주세요</h1>
+        <span className="step-badge">{isEditing ? '프로필 수정' : 'STEP 2 / 2'}</span>
+        <h1>{isEditing ? '신체 정보를 수정해주세요' : '신체 정보를 입력해주세요'}</h1>
         <button type="button" className="goal-chip" onClick={() => navigate('/goal')}>
           {goalEmojis[profileForm.goalType]} 목표: {goalLabels[profileForm.goalType]} · 변경
         </button>
@@ -104,7 +123,7 @@ export function ProfileSetupPage() {
         </label>
         <button type="submit" className="cta wide" disabled={isSaving}>
           <Save size={18} aria-hidden="true" />
-          {isSaving ? '저장 중…' : '저장하고 대시보드로'}
+          {isSaving ? '저장 중…' : isEditing ? '수정하고 대시보드로' : '저장하고 대시보드로'}
         </button>
       </form>
     </div>

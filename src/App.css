@@ -5,6 +5,17 @@ h2 { margin: 0 0 14px; color: #172033; font-size: 18px; font-weight: 750; }
 
 .notice { margin: 0 0 16px; padding: 12px 14px; border: 1px solid #d7dde3; border-radius: 8px; background: #fff; color: #334155; font-weight: 650; }
 .notice-warning { border-color: #f59e0b; background: #fffbeb; color: #92400e; }
+.notice-info { border-color: #2563eb; background: #eff6ff; color: #1e40af; }
+
+/* 폼 액션(기록/수정/취소) 영역 */
+.form-actions { grid-column: 1 / -1; display: flex; gap: 10px; }
+.form-actions .cta { flex: 1; }
+
+/* 테이블 행 수정·삭제 버튼 */
+.row-actions { display: flex; gap: 6px; }
+.icon-btn { min-height: 34px; padding: 0 10px; }
+.icon-btn.danger { color: #b91c1c; }
+.icon-btn.danger:hover { border-color: #b91c1c; background: #fef2f2; }
 
 input, select {
   width: 100%; min-height: 44px; box-sizing: border-box;

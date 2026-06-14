@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Apple, CalendarDays } from 'lucide-react'
+import { Apple, CalendarDays, Pencil, Trash2, X } from 'lucide-react'
 import { api } from '../api'
-import type { DailyMealLogResponse, MealType } from '../api'
+import type { DailyMealLogResponse, MealLogResponse, MealType } from '../api'
 import { mealLabels, today } from '../constants'
 import { useProfile } from '../context/ProfileContext'
 
@@ -13,6 +13,7 @@ export function MealLogPage() {
   const [foodId, setFoodId] = useState<number | null>(null)
   const [foodInput, setFoodInput] = useState('')
   const [quantity, setQuantity] = useState(1)
+  const [editingId, setEditingId] = useState<number | null>(null)
   const [logs, setLogs] = useState<DailyMealLogResponse | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [isBusy, setIsBusy] = useState(false)
@@ -48,9 +49,48 @@ export function MealLogPage() {
     [profile],
   )
 
+  // 선택한 날짜가 바뀌면 해당 날짜 기록을 자동으로 다시 불러온다.
   useEffect(() => {
-    loadLogs(today).catch((error: Error) => setNotice(error.message))
-  }, [loadLogs])
+    loadLogs(date).catch((error: Error) => setNotice(error.message))
+  }, [loadLogs, date])
+
+  function resetForm() {
+    setEditingId(null)
+    setMealType('LUNCH')
+    setQuantity(1)
+    if (foods[0]) {
+      setFoodId(foods[0].foodId)
+      setFoodInput(foods[0].name)
+    }
+  }
+
+  function startEdit(log: MealLogResponse) {
+    setEditingId(log.mealLogId)
+    setMealType(log.mealType)
+    setFoodId(log.foodId)
+    setFoodInput(log.foodName)
+    setQuantity(log.quantity)
+    setNotice(null)
+  }
+
+  async function handleDelete(mealLogId: number) {
+    if (!profile) {
+      return
+    }
+    setIsBusy(true)
+    try {
+      await api.deleteMealLog(mealLogId)
+      if (editingId === mealLogId) {
+        resetForm()
+      }
+      await loadLogs(date)
+      setNotice('식단 기록이 삭제되었습니다.')
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : '식단 기록 삭제에 실패했습니다.')
+    } finally {
+      setIsBusy(false)
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -65,9 +105,16 @@ export function MealLogPage() {
 
     setIsBusy(true)
     try {
-      await api.createMealLog({ profileId: profile.profileId, mealDate: date, mealType, foodId, quantity })
+      const body = { profileId: profile.profileId, mealDate: date, mealType, foodId, quantity }
+      if (editingId !== null) {
+        await api.updateMealLog(editingId, body)
+        setNotice('식단 기록이 수정되었습니다.')
+      } else {
+        await api.createMealLog(body)
+        setNotice('식단 기록이 저장되었습니다.')
+      }
+      resetForm()
       await loadLogs(date)
-      setNotice('식단 기록이 저장되었습니다.')
     } catch (error) {
       setNotice(error instanceof Error ? error.message : '식단 기록에 실패했습니다.')
     } finally {
@@ -76,6 +123,7 @@ export function MealLogPage() {
   }
 
   const hasLogs = Boolean(logs?.mealLogs.length)
+  const isEditing = editingId !== null
 
   return (
     <div className="meallog-page">
@@ -93,6 +141,11 @@ export function MealLogPage() {
       )}
 
       <form className="form-grid card" onSubmit={handleSubmit}>
+        {isEditing && (
+          <p className="notice notice-info wide" role="status">
+            기록을 수정하는 중입니다.
+          </p>
+        )}
         <label>
           날짜
           <input type="date" value={date} onChange={(event) => setDate(event.target.value)} />
@@ -138,10 +191,18 @@ export function MealLogPage() {
           <Apple size={18} aria-hidden="true" />
           <span>{expectedCalories} kcal</span>
         </div>
-        <button type="submit" className="cta" disabled={isBusy || !foods.length}>
-          <CalendarDays size={18} aria-hidden="true" />
-          {isBusy ? '기록 중…' : '기록'}
-        </button>
+        <div className="form-actions">
+          <button type="submit" className="cta" disabled={isBusy || !foods.length}>
+            <CalendarDays size={18} aria-hidden="true" />
+            {isBusy ? '저장 중…' : isEditing ? '수정 완료' : '기록'}
+          </button>
+          {isEditing && (
+            <button type="button" className="ghost" onClick={resetForm} disabled={isBusy}>
+              <X size={18} aria-hidden="true" />
+              취소
+            </button>
+          )}
+        </div>
       </form>
 
       <section className="card">
@@ -157,6 +218,7 @@ export function MealLogPage() {
                 <th>음식</th>
                 <th>수량</th>
                 <th>칼로리</th>
+                <th>관리</th>
               </tr>
             </thead>
             <tbody>
@@ -166,11 +228,31 @@ export function MealLogPage() {
                   <td>{log.foodName}</td>
                   <td>{log.quantity}</td>
                   <td>{log.totalCalories} kcal</td>
+                  <td className="row-actions">
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      onClick={() => startEdit(log)}
+                      disabled={isBusy}
+                      aria-label="수정"
+                    >
+                      <Pencil size={16} aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      className="icon-btn danger"
+                      onClick={() => handleDelete(log.mealLogId)}
+                      disabled={isBusy}
+                      aria-label="삭제"
+                    >
+                      <Trash2 size={16} aria-hidden="true" />
+                    </button>
+                  </td>
                 </tr>
               ))}
               {!hasLogs && (
                 <tr>
-                  <td colSpan={4}>선택한 날짜에 등록된 식단 기록이 없습니다.</td>
+                  <td colSpan={5}>선택한 날짜에 등록된 식단 기록이 없습니다.</td>
                 </tr>
               )}
             </tbody>

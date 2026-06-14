@@ -1,5 +1,5 @@
 import { NavLink, Navigate, Outlet } from 'react-router-dom'
-import { LayoutDashboard, Utensils } from 'lucide-react'
+import { LayoutDashboard, UserCog, Utensils } from 'lucide-react'
 import { useProfile } from '../context/ProfileContext'
 import { goalLabels } from '../constants'
 
@@ -32,6 +32,10 @@ export function AppLayout() {
           <NavLink to="/log" className={({ isActive }) => (isActive ? 'active' : '')}>
             <Utensils size={18} aria-hidden="true" />
             식단 기록
+          </NavLink>
+          <NavLink to="/profile" className={({ isActive }) => (isActive ? 'active' : '')}>
+            <UserCog size={18} aria-hidden="true" />
+            프로필 수정
           </NavLink>
         </nav>
       </header>

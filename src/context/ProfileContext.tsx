@@ -29,9 +29,21 @@ const defaultForm: UserProfileRequest = {
 
 const ProfileContext = createContext<ProfileContextValue | null>(null)
 
+const PROFILE_STORAGE_KEY = 'pdm.profile'
+
+// 새로고침해도 저장된 프로필이 유지되도록 localStorage에서 초기값을 복원한다.
+function loadStoredProfile(): UserProfileResponse | null {
+  try {
+    const raw = localStorage.getItem(PROFILE_STORAGE_KEY)
+    return raw ? (JSON.parse(raw) as UserProfileResponse) : null
+  } catch {
+    return null
+  }
+}
+
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const [profileForm, setProfileForm] = useState<UserProfileRequest>(defaultForm)
-  const [profile, setProfile] = useState<UserProfileResponse | null>(null)
+  const [profile, setProfile] = useState<UserProfileResponse | null>(loadStoredProfile)
   const [foods, setFoods] = useState<FoodResponse[]>([])
   const [foodsError, setFoodsError] = useState<string | null>(null)
 
@@ -41,6 +53,15 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       .then(setFoods)
       .catch((error: Error) => setFoodsError(error.message))
   }, [])
+
+  // 프로필이 바뀔 때마다 localStorage에 동기화한다.
+  useEffect(() => {
+    if (profile) {
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile))
+    } else {
+      localStorage.removeItem(PROFILE_STORAGE_KEY)
+    }
+  }, [profile])
 
   const updateProfileForm = useCallback(
     <K extends keyof UserProfileRequest>(key: K, value: UserProfileRequest[K]) => {
@@ -57,6 +78,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useProfile() {
   const context = useContext(ProfileContext)
   if (!context) {

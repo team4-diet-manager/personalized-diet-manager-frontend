@@ -118,6 +118,13 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(body),
     }),
+  getProfile: (profileId: number) =>
+    request<UserProfileResponse>(`/api/profiles/${profileId}`),
+  updateProfile: (profileId: number, body: UserProfileRequest) =>
+    request<UserProfileResponse>(`/api/profiles/${profileId}`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    }),
   calculateCalories: (body: CalorieRequest) =>
     request<CalorieResponse>('/api/calories/recommendation', {
       method: 'POST',
@@ -128,6 +135,15 @@ export const api = {
     request<MealLogResponse>('/api/meal-logs', {
       method: 'POST',
       body: JSON.stringify(body),
+    }),
+  updateMealLog: (mealLogId: number, body: MealLogRequest) =>
+    request<MealLogResponse>(`/api/meal-logs/${mealLogId}`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    }),
+  deleteMealLog: (mealLogId: number) =>
+    request<void>(`/api/meal-logs/${mealLogId}`, {
+      method: 'DELETE',
     }),
   getDailyMealLogs: (profileId: number, date: string) =>
     request<DailyMealLogResponse>(`/api/meal-logs?profileId=${profileId}&date=${date}`),
