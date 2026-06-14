@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Save } from 'lucide-react'
 import { api } from '../api'
 import type { ActivityLevel, Gender } from '../api'
@@ -9,15 +9,18 @@ import { useProfile } from '../context/ProfileContext'
 
 export function ProfileSetupPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { profileForm, updateProfileForm, profile, setProfile } = useProfile()
   const [notice, setNotice] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
-  const isEditing = profile !== null
+  // "프로필 수정"으로 진입한 경우에만 수정 모드. 온보딩(목표 선택) 흐름과 구분한다.
+  const isEditing = Boolean((location.state as { edit?: boolean } | null)?.edit) && profile !== null
 
-  // 이미 저장된 프로필이 있으면(수정 진입) 폼에 현재 값을 채워 넣는다.
+  // 수정 모드로 진입했을 때만 저장된 프로필 값을 폼에 채운다.
+  // (온보딩 중에는 사용자가 방금 고른 목표/입력값을 덮어쓰지 않도록 한다)
   useEffect(() => {
-    if (profile) {
+    if (isEditing && profile) {
       updateProfileForm('gender', profile.gender)
       updateProfileForm('age', profile.age)
       updateProfileForm('height', profile.height)

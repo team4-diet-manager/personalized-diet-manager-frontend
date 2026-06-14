@@ -33,7 +33,11 @@ export function AppLayout() {
             <Utensils size={18} aria-hidden="true" />
             식단 기록
           </NavLink>
-          <NavLink to="/profile" className={({ isActive }) => (isActive ? 'active' : '')}>
+          <NavLink
+            to="/profile"
+            state={{ edit: true }}
+            className={({ isActive }) => (isActive ? 'active' : '')}
+          >
             <UserCog size={18} aria-hidden="true" />
             프로필 수정
           </NavLink>
