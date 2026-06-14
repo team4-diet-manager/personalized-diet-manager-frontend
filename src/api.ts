@@ -35,6 +35,9 @@ export interface FoodResponse {
   name: string
   calories: number
   servingSize: string
+  proteinGrams: number
+  carbGrams: number
+  fatGrams: number
 }
 
 export interface MealLogRequest {
@@ -73,6 +76,7 @@ export interface DailyReportResponse {
   status: 'UNDER' | 'OVER' | 'MATCH'
   message: string
   recommendedMacros: MacroNutrients
+  intakeMacros: MacroNutrients
 }
 
 interface ErrorResponse {

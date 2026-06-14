@@ -72,9 +72,9 @@ export function DashboardPage() {
         </section>
 
         <section className="card macro-card">
-          <h2>권장 탄단지</h2>
+          <h2>탄단지 (섭취 / 권장)</h2>
           {report ? (
-            <MacroBars macros={report.recommendedMacros} />
+            <MacroBars recommended={report.recommendedMacros} intake={report.intakeMacros} />
           ) : (
             <p className="card-msg">조회하면 목표별 권장 매크로가 표시됩니다.</p>
           )}

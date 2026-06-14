@@ -112,6 +112,7 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 .macro-track { height: 12px; border-radius: 999px; background: #eef2f6; overflow: hidden; }
 .macro-fill { height: 100%; border-radius: 999px; transition: width 0.6s ease; }
 .macro-grams { font-size: 13px; font-weight: 750; color: #172033; text-align: right; }
+.macro-grams .over { color: #ef4444; }
 
 /* ===== 식단 기록 ===== */
 .calorie-preview { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1px solid #d7dde3; border-radius: 8px; background: #f8fafc; color: #334155; font-weight: 750; }
