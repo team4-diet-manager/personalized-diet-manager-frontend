@@ -5,6 +5,7 @@ import { api } from '../api'
 import type { DailyMealLogResponse, MealLogResponse, MealType } from '../api'
 import { mealLabels, today } from '../constants'
 import { useProfile } from '../context/ProfileContext'
+import { FoodCombobox } from '../components/FoodCombobox'
 
 export function MealLogPage() {
   const { profile, foods, foodsError } = useProfile()
@@ -16,13 +17,6 @@ export function MealLogPage() {
   const [logs, setLogs] = useState<DailyMealLogResponse | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [isBusy, setIsBusy] = useState(false)
-
-  // 음식 목록이 로드되면 첫 음식을 기본 선택
-  useEffect(() => {
-    if (foodId === null && foods[0]) {
-      setFoodId(foods[0].foodId)
-    }
-  }, [foods, foodId])
 
   const selectedFood = useMemo(
     () => foods.find((food) => food.foodId === foodId),
@@ -50,9 +44,7 @@ export function MealLogPage() {
     setEditingId(null)
     setMealType('LUNCH')
     setQuantity(1)
-    if (foods[0]) {
-      setFoodId(foods[0].foodId)
-    }
+    setFoodId(null)
   }
 
   function startEdit(log: MealLogResponse) {
@@ -84,8 +76,12 @@ export function MealLogPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!profile || !selectedFood || foodId === null) {
+    if (!profile || !foods.length) {
       setNotice('음식 목록을 불러온 뒤 식단을 기록할 수 있습니다.')
+      return
+    }
+    if (!selectedFood || foodId === null) {
+      setNotice('음식을 선택해주세요.')
       return
     }
     if (quantity < 1) {
@@ -152,21 +148,12 @@ export function MealLogPage() {
         </label>
         <label className="wide">
           음식
-          <select
-            value={foodId ?? ''}
-            onChange={(event) => setFoodId(Number(event.target.value))}
+          <FoodCombobox
+            foods={foods}
+            value={foodId}
+            onChange={setFoodId}
             disabled={!foods.length}
-          >
-            {foods.length ? (
-              foods.map((food) => (
-                <option key={food.foodId} value={food.foodId}>
-                  {food.name} / {food.calories}kcal / {food.servingSize}
-                </option>
-              ))
-            ) : (
-              <option value="">음식 목록을 불러오지 못했습니다</option>
-            )}
-          </select>
+          />
         </label>
         <label>
           수량

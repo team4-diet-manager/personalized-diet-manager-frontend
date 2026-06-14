@@ -114,6 +114,24 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 .macro-grams { font-size: 13px; font-weight: 750; color: #172033; text-align: right; }
 .macro-grams .over { color: #ef4444; }
 
+/* ===== 음식 검색 콤보박스 ===== */
+.combobox { position: relative; }
+.combobox-list {
+  position: absolute; z-index: 20; top: calc(100% + 4px); left: 0; right: 0;
+  max-height: 260px; overflow-y: auto; margin: 0; padding: 4px; list-style: none;
+  border: 1px solid #cbd5e1; border-radius: 8px; background: #fff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
+.combobox-option {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 6px; cursor: pointer;
+}
+.combobox-option.active { background: #eff6ff; }
+.combobox-option.selected { background: #dbeafe; }
+.combobox-name { font-size: 14px; font-weight: 700; color: #172033; }
+.combobox-meta { font-size: 12px; color: #64748b; white-space: nowrap; }
+.combobox-empty { padding: 12px 10px; color: #94a3b8; font-size: 13px; text-align: center; }
+
 /* ===== 식단 기록 ===== */
 .calorie-preview { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1px solid #d7dde3; border-radius: 8px; background: #f8fafc; color: #334155; font-weight: 750; }
 .meallog-page .card { margin-bottom: 16px; }
