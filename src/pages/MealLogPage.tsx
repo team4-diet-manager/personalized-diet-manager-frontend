@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Apple, CalendarDays, Pencil, Trash2, X } from 'lucide-react'
 import { api } from '../api'
@@ -7,6 +7,9 @@ import { localDateString, mealLabels } from '../constants'
 import { useProfile } from '../context/ProfileContext'
 import { useDailyRollover } from '../hooks/useDailyRollover'
 import { FoodCombobox } from '../components/FoodCombobox'
+
+// 식단 테이블에서 식사 구분을 표시할 순서
+const MEAL_ORDER: MealType[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK']
 
 export function MealLogPage() {
   const { profile, foods, foodsError } = useProfile()
@@ -30,6 +33,16 @@ export function MealLogPage() {
     [foods, foodId],
   )
   const expectedCalories = selectedFood ? selectedFood.calories * quantity : 0
+
+  // 식사 구분별로 기록을 묶고 각 소계를 계산한다.
+  const mealGroups = useMemo(() => {
+    const all = logs?.mealLogs ?? []
+    return MEAL_ORDER.map((type) => {
+      const items = all.filter((log) => log.mealType === type)
+      const subtotal = items.reduce((sum, log) => sum + log.totalCalories, 0)
+      return { type, items, subtotal }
+    }).filter((group) => group.items.length > 0)
+  }, [logs])
 
   const loadLogs = useCallback(
     async (targetDate: string) => {
@@ -198,7 +211,6 @@ export function MealLogPage() {
           <table>
             <thead>
               <tr>
-                <th>식사</th>
                 <th>음식</th>
                 <th>수량</th>
                 <th>칼로리</th>
@@ -206,37 +218,48 @@ export function MealLogPage() {
               </tr>
             </thead>
             <tbody>
-              {(logs?.mealLogs ?? []).map((log) => (
-                <tr key={log.mealLogId}>
-                  <td>{mealLabels[log.mealType]}</td>
-                  <td>{log.foodName}</td>
-                  <td>{log.quantity}</td>
-                  <td>{log.totalCalories} kcal</td>
-                  <td className="row-actions">
-                    <button
-                      type="button"
-                      className="icon-btn"
-                      onClick={() => startEdit(log)}
-                      disabled={isBusy}
-                      aria-label="수정"
-                    >
-                      <Pencil size={16} aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      className="icon-btn danger"
-                      onClick={() => handleDelete(log.mealLogId)}
-                      disabled={isBusy}
-                      aria-label="삭제"
-                    >
-                      <Trash2 size={16} aria-hidden="true" />
-                    </button>
-                  </td>
-                </tr>
+              {mealGroups.map((group) => (
+                <Fragment key={group.type}>
+                  <tr className="meal-group-head">
+                    <th colSpan={2} scope="rowgroup">
+                      {mealLabels[group.type]}
+                    </th>
+                    <td className="meal-subtotal" colSpan={2}>
+                      {group.subtotal} kcal
+                    </td>
+                  </tr>
+                  {group.items.map((log) => (
+                    <tr key={log.mealLogId}>
+                      <td>{log.foodName}</td>
+                      <td>{log.quantity}</td>
+                      <td>{log.totalCalories} kcal</td>
+                      <td className="row-actions">
+                        <button
+                          type="button"
+                          className="icon-btn"
+                          onClick={() => startEdit(log)}
+                          disabled={isBusy}
+                          aria-label="수정"
+                        >
+                          <Pencil size={16} aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          className="icon-btn danger"
+                          onClick={() => handleDelete(log.mealLogId)}
+                          disabled={isBusy}
+                          aria-label="삭제"
+                        >
+                          <Trash2 size={16} aria-hidden="true" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </Fragment>
               ))}
               {!hasLogs && (
                 <tr>
-                  <td colSpan={5}>선택한 날짜에 등록된 식단 기록이 없습니다.</td>
+                  <td colSpan={4}>선택한 날짜에 등록된 식단 기록이 없습니다.</td>
                 </tr>
               )}
             </tbody>

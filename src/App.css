@@ -143,6 +143,11 @@ th, td { padding: 12px 10px; border-top: 1px solid #e2e8f0; text-align: left; }
 th { color: #64748b; font-size: 13px; }
 td { color: #172033; font-size: 14px; }
 
+/* 식사 구분 그룹 헤더 + 소계 */
+.meal-group-head th { color: #1d4ed8; font-size: 14px; font-weight: 800; }
+.meal-group-head td.meal-subtotal { color: #1d4ed8; font-size: 13px; font-weight: 750; text-align: right; }
+.meal-group-head th, .meal-group-head td { background: #f8fafc; border-top: 2px solid #dbe3ec; }
+
 /* ===== 반응형 ===== */
 @media (max-width: 820px) {
   .onboarding-steps, .goal-grid, .dashboard-grid, .form-grid { grid-template-columns: 1fr; }
