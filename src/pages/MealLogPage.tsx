@@ -3,7 +3,7 @@ import type { FormEvent } from 'react'
 import { Apple, CalendarDays, Pencil, Trash2, X } from 'lucide-react'
 import { api } from '../api'
 import type { DailyMealLogResponse, MealLogResponse, MealType } from '../api'
-import { localDateString, mealLabels } from '../constants'
+import { goalLabels, gradeMeta, localDateString, mealLabels } from '../constants'
 import { useProfile } from '../context/ProfileContext'
 import { useDailyRollover } from '../hooks/useDailyRollover'
 import { FoodCombobox } from '../components/FoodCombobox'
@@ -224,6 +224,13 @@ export function MealLogPage() {
                   onClick={() => quickAdd(food.foodId)}
                   disabled={isBusy}
                 >
+                  {food.grade && (
+                    <span
+                      className="grade-dot"
+                      style={{ background: gradeMeta[food.grade].color }}
+                      aria-label={gradeMeta[food.grade].label}
+                    />
+                  )}
                   + {food.name}
                   <span className="food-chip-kcal">{food.calories}kcal</span>
                 </button>
@@ -253,6 +260,17 @@ export function MealLogPage() {
             onChange={setFoodId}
             disabled={!foods.length}
           />
+          {profile && foods.some((food) => food.grade) && (
+            <span className="grade-legend">
+              {(['GREEN', 'YELLOW', 'RED'] as const).map((grade) => (
+                <span key={grade} className="grade-legend-item">
+                  <span className="grade-dot" style={{ background: gradeMeta[grade].color }} />
+                  {gradeMeta[grade].label}
+                </span>
+              ))}
+              <span className="grade-legend-note">· {goalLabels[profile.goalType]} 기준</span>
+            </span>
+          )}
         </label>
         <label>
           수량

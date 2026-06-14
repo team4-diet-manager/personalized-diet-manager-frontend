@@ -1,4 +1,11 @@
-import type { ActivityLevel, GoalType, MealType } from './api'
+import type { ActivityLevel, FoodGrade, GoalType, MealType } from './api'
+
+/** 음식 신호등 등급별 라벨·색상 */
+export const gradeMeta: Record<FoodGrade, { label: string; color: string }> = {
+  GREEN: { label: '권장', color: '#16a34a' },
+  YELLOW: { label: '적당히', color: '#f59e0b' },
+  RED: { label: '주의', color: '#ef4444' },
+}
 
 /** 로컬 시간대 기준 YYYY-MM-DD 문자열 (toISOString의 UTC 보정 오차를 피한다) */
 export function localDateString(date: Date = new Date()): string {

@@ -47,12 +47,13 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const [foods, setFoods] = useState<FoodResponse[]>([])
   const [foodsError, setFoodsError] = useState<string | null>(null)
 
+  // 저장된 목표가 있으면 신호등 등급까지 포함해 음식을 불러온다(목표가 바뀌면 다시 분류).
   useEffect(() => {
     api
-      .getFoods()
+      .getFoods(profile?.goalType)
       .then(setFoods)
       .catch((error: Error) => setFoodsError(error.message))
-  }, [])
+  }, [profile?.goalType])
 
   // 프로필이 바뀔 때마다 localStorage에 동기화한다.
   useEffect(() => {

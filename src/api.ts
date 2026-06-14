@@ -38,7 +38,10 @@ export interface FoodResponse {
   proteinGrams: number
   carbGrams: number
   fatGrams: number
+  grade?: FoodGrade | null
 }
+
+export type FoodGrade = 'GREEN' | 'YELLOW' | 'RED'
 
 export interface MealLogRequest {
   profileId: number
@@ -134,7 +137,8 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(body),
     }),
-  getFoods: () => request<FoodResponse[]>('/api/foods'),
+  getFoods: (goalType?: GoalType) =>
+    request<FoodResponse[]>('/api/foods' + (goalType ? `?goalType=${goalType}` : '')),
   createMealLog: (body: MealLogRequest) =>
     request<MealLogResponse>('/api/meal-logs', {
       method: 'POST',

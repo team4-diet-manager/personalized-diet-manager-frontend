@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FoodResponse } from '../api'
+import { gradeMeta } from '../constants'
 
 interface FoodComboboxProps {
   foods: FoodResponse[]
@@ -111,7 +112,17 @@ export function FoodCombobox({ foods, value, onChange, disabled }: FoodComboboxP
                   select(food)
                 }}
               >
-                <span className="combobox-name">{food.name}</span>
+                <span className="combobox-name">
+                  {food.grade && (
+                    <span
+                      className="grade-dot"
+                      style={{ background: gradeMeta[food.grade].color }}
+                      title={gradeMeta[food.grade].label}
+                      aria-label={gradeMeta[food.grade].label}
+                    />
+                  )}
+                  {food.name}
+                </span>
                 <span className="combobox-meta">
                   {food.calories}kcal / {food.servingSize}
                 </span>
