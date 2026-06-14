@@ -11,7 +11,6 @@ export function MealLogPage() {
   const [date, setDate] = useState(today)
   const [mealType, setMealType] = useState<MealType>('LUNCH')
   const [foodId, setFoodId] = useState<number | null>(null)
-  const [foodInput, setFoodInput] = useState('')
   const [quantity, setQuantity] = useState(1)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [logs, setLogs] = useState<DailyMealLogResponse | null>(null)
@@ -22,7 +21,6 @@ export function MealLogPage() {
   useEffect(() => {
     if (foodId === null && foods[0]) {
       setFoodId(foods[0].foodId)
-      setFoodInput(foods[0].name)
     }
   }, [foods, foodId])
 
@@ -31,12 +29,6 @@ export function MealLogPage() {
     [foods, foodId],
   )
   const expectedCalories = selectedFood ? selectedFood.calories * quantity : 0
-
-  function handleFoodInput(value: string) {
-    setFoodInput(value)
-    const match = foods.find((f) => f.name === value)
-    if (match) setFoodId(match.foodId)
-  }
 
   const loadLogs = useCallback(
     async (targetDate: string) => {
@@ -162,21 +154,21 @@ export function MealLogPage() {
         </label>
         <label className="wide">
           음식
-          <input
-            list="food-list"
-            type="text"
-            placeholder="음식 이름을 검색하거나 선택하세요…"
-            value={foodInput}
-            onChange={(event) => handleFoodInput(event.target.value)}
+          <select
+            value={foodId ?? ''}
+            onChange={(event) => setFoodId(Number(event.target.value))}
             disabled={!foods.length}
-          />
-          <datalist id="food-list">
-            {foods.map((food) => (
-              <option key={food.foodId} value={food.name}>
-                {food.calories}kcal / {food.servingSize}
-              </option>
-            ))}
-          </datalist>
+          >
+            {foods.length ? (
+              foods.map((food) => (
+                <option key={food.foodId} value={food.foodId}>
+                  {food.name} / {food.calories}kcal / {food.servingSize}
+                </option>
+              ))
+            ) : (
+              <option value="">음식 목록을 불러오지 못했습니다</option>
+            )}
+          </select>
         </label>
         <label>
           수량
