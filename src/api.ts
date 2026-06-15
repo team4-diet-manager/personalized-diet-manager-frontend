@@ -6,6 +6,7 @@ export type ExerciseType = 'WALKING' | 'RUNNING' | 'CYCLING' | 'WEIGHT_TRAINING'
 export type Intensity = 'LOW' | 'MEDIUM' | 'HIGH'
 
 export interface UserProfileRequest {
+  name: string
   gender: Gender
   age: number
   height: number

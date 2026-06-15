@@ -18,9 +18,9 @@ export function AppLayout() {
         <div className="layout-brand">
           <span className="brand-mark">PDM</span>
           <div>
-            <strong>식단 관리</strong>
+            <strong>{profile.name}님의 식단 관리</strong>
             <span className="brand-sub">
-              목표: {goalLabels[profile.goalType]} · Profile #{profile.profileId}
+              목표: {goalLabels[profile.goalType]}
             </span>
           </div>
         </div>

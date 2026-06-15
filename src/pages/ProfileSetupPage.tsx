@@ -21,6 +21,7 @@ export function ProfileSetupPage() {
   // (온보딩 중에는 사용자가 방금 고른 목표/입력값을 덮어쓰지 않도록 한다)
   useEffect(() => {
     if (isEditing && profile) {
+      updateProfileForm('name', profile.name)
       updateProfileForm('gender', profile.gender)
       updateProfileForm('age', profile.age)
       updateProfileForm('height', profile.height)
@@ -35,6 +36,10 @@ export function ProfileSetupPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
+    if (!profileForm.name.trim()) {
+      setNotice('이름을 입력해주세요.')
+      return
+    }
     if (profileForm.age <= 0 || profileForm.height <= 0 || profileForm.weight <= 0) {
       setNotice('나이, 키, 몸무게는 모두 1 이상이어야 합니다.')
       return
@@ -72,6 +77,16 @@ export function ProfileSetupPage() {
       )}
 
       <form className="form-grid" onSubmit={handleSubmit}>
+        <label className="wide">
+          이름
+          <input
+            type="text"
+            maxLength={50}
+            placeholder="이름을 입력하세요"
+            value={profileForm.name}
+            onChange={(event) => updateProfileForm('name', event.target.value)}
+          />
+        </label>
         <label>
           성별
           <select

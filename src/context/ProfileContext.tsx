@@ -19,6 +19,7 @@ interface ProfileContextValue {
 }
 
 const defaultForm: UserProfileRequest = {
+  name: '',
   gender: 'FEMALE',
   age: 23,
   height: 162,
