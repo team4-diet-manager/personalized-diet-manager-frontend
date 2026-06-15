@@ -43,6 +43,8 @@ export function SignupPage() {
     try {
       // 1. 회원가입 API 호출
       await api.signup({ email, password, nickname })
+      // 닉네임을 프로필 이름으로 쓰기 위해 저장(온보딩에서 별도 이름 입력 없음)
+      localStorage.setItem('pdm.nickname', nickname)
       // 2. 가입 완료 후 자동 로그인 처리
       await login({ email, password })
       // 3. 목표 선택 페이지(/goal)로 즉시 이동

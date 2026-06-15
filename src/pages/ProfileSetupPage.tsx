@@ -28,6 +28,9 @@ export function ProfileSetupPage() {
       updateProfileForm('weight', profile.weight)
       updateProfileForm('activityLevel', profile.activityLevel)
       updateProfileForm('goalType', profile.goalType)
+    } else {
+      // 온보딩: 이름은 회원가입 닉네임을 그대로 사용한다(별도 입력 없음).
+      updateProfileForm('name', localStorage.getItem('pdm.nickname') ?? '')
     }
     // 진입 시 1회만 동기화한다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -36,27 +39,28 @@ export function ProfileSetupPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    if (!profileForm.name.trim()) {
-      setNotice('이름을 입력해주세요.')
-      return
-    }
     if (profileForm.age <= 0 || profileForm.height <= 0 || profileForm.weight <= 0) {
       setNotice('나이, 키, 몸무게는 모두 1 이상이어야 합니다.')
       return
     }
 
     setIsSaving(true)
+    // 이름은 입력받지 않고 회원가입 닉네임을 사용한다(없으면 기본값).
+    const payload = {
+      ...profileForm,
+      name: profileForm.name?.trim() || localStorage.getItem('pdm.nickname') || '사용자',
+    }
     try {
       let saved
       try {
         // 저장된 프로필이 있으면 수정(PUT), 없으면 신규 생성(POST)한다.
         saved = profile
-          ? await api.updateProfile(profileForm)
-          : await api.createProfile(profileForm)
+          ? await api.updateProfile(payload)
+          : await api.createProfile(payload)
       } catch (error) {
         // 저장된 프로필이 서버에 없으면(예: 서버 재시작으로 DB 초기화) 새로 생성한다.
         if (isProfileMissing(error)) {
-          saved = await api.createProfile(profileForm)
+          saved = await api.createProfile(payload)
         } else {
           throw error
         }
@@ -87,16 +91,6 @@ export function ProfileSetupPage() {
       )}
 
       <form className="form-grid" onSubmit={handleSubmit}>
-        <label className="wide">
-          이름
-          <input
-            type="text"
-            maxLength={50}
-            placeholder="이름을 입력하세요"
-            value={profileForm.name}
-            onChange={(event) => updateProfileForm('name', event.target.value)}
-          />
-        </label>
         <label>
           성별
           <select
