@@ -47,7 +47,7 @@ export function WeeklyTrend({ days }: WeeklyTrendProps) {
         strokeWidth={1}
         strokeDasharray="4 4"
       />
-      <text x={width - padX} y={recommendedY - 5} textAnchor="end" className="trend-rec-label">
+      <text x={padX} y={recommendedY - 5} textAnchor="start" className="trend-rec-label">
         권장 {recommended}
       </text>
 
