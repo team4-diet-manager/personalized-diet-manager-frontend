@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Save } from 'lucide-react'
-import { api } from '../api'
+import { api, isProfileMissing } from '../api'
 import type { ActivityLevel, Gender } from '../api'
 import { activityLabels, goalEmojis, goalLabels } from '../constants'
 import { useProfile } from '../context/ProfileContext'
@@ -47,10 +47,20 @@ export function ProfileSetupPage() {
 
     setIsSaving(true)
     try {
-      // 저장된 프로필이 있으면 수정(PUT), 없으면 신규 생성(POST)한다.
-      const saved = profile
-        ? await api.updateProfile(profile.profileId, profileForm)
-        : await api.createProfile(profileForm)
+      let saved
+      try {
+        // 저장된 프로필이 있으면 수정(PUT), 없으면 신규 생성(POST)한다.
+        saved = profile
+          ? await api.updateProfile(profile.profileId, profileForm)
+          : await api.createProfile(profileForm)
+      } catch (error) {
+        // 저장된 프로필이 서버에 없으면(예: 서버 재시작으로 DB 초기화) 새로 생성한다.
+        if (isProfileMissing(error)) {
+          saved = await api.createProfile(profileForm)
+        } else {
+          throw error
+        }
+      }
       setProfile(saved)
       navigate('/dashboard')
     } catch (error) {
