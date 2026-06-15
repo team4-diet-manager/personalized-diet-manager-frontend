@@ -105,6 +105,12 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 .weekly-trend .trend-value { fill: #334155; font-size: 9px; font-weight: 700; }
 .weekly-trend .trend-rec-label { fill: #64748b; font-size: 10px; font-weight: 700; }
 
+/* 체중 변화 차트 */
+.weight-page .card { margin-bottom: 16px; }
+.weight-trend { width: 100%; height: auto; }
+.weight-trend .trend-axis { fill: #64748b; font-size: 10px; font-weight: 700; }
+.weight-trend .trend-value { fill: #1d4ed8; font-size: 11px; font-weight: 750; }
+
 .ring-wrap { position: relative; display: grid; place-items: center; padding: 8px 0; }
 .ring-center { position: absolute; display: grid; justify-items: center; gap: 2px; text-align: center; }
 .ring-center strong { font-size: 34px; color: #111827; line-height: 1; }

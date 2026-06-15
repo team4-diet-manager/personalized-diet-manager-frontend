@@ -93,6 +93,18 @@ export interface WeeklyReportResponse {
   days: WeeklyReportDay[]
 }
 
+export interface WeightLogRequest {
+  profileId: number
+  logDate: string
+  weight: number
+}
+
+export interface WeightLogResponse {
+  weightLogId: number
+  logDate: string
+  weight: number
+}
+
 interface ErrorResponse {
   message?: string
   fieldErrors?: Array<{ field: string; message: string }>
@@ -185,4 +197,11 @@ export const api = {
     request<WeeklyReportResponse>(
       `/api/reports/weekly?profileId=${profileId}&endDate=${endDate}`,
     ),
+  recordWeight: (body: WeightLogRequest) =>
+    request<WeightLogResponse>('/api/weight-logs', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  getWeightLogs: (profileId: number) =>
+    request<WeightLogResponse[]>(`/api/weight-logs?profileId=${profileId}`),
 }

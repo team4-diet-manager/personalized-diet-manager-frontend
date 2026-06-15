@@ -6,6 +6,7 @@ import { GoalSelectPage } from './pages/GoalSelectPage'
 import { ProfileSetupPage } from './pages/ProfileSetupPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { MealLogPage } from './pages/MealLogPage'
+import { WeightLogPage } from './pages/WeightLogPage'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
       <Route element={<AppLayout />}>
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/log" element={<MealLogPage />} />
+        <Route path="/weight" element={<WeightLogPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
