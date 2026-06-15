@@ -122,6 +122,13 @@ export interface WeeklyReportResponse {
   days: WeeklyReportDay[]
 }
 
+export interface StatsResponse {
+  streak: number
+  weeklyAchievedDays: number
+  weeklyLoggedDays: number
+  achievementRate: number
+}
+
 export interface WeightLogRequest {
   profileId: number
   logDate: string
@@ -234,6 +241,8 @@ export const api = {
     request<WeeklyReportResponse>(
       `/api/reports/weekly?profileId=${profileId}&endDate=${endDate}`,
     ),
+  getStats: (profileId: number, endDate: string) =>
+    request<StatsResponse>(`/api/reports/stats?profileId=${profileId}&endDate=${endDate}`),
   recordWeight: (body: WeightLogRequest) =>
     request<WeightLogResponse>('/api/weight-logs', {
       method: 'POST',

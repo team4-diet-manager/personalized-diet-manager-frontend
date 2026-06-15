@@ -100,6 +100,18 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 .net-line { margin: 12px 0 0; text-align: center; color: #475569; font-size: 13px; font-weight: 650; }
 .net-line strong { color: #1d4ed8; }
 
+/* 스트릭·주간 달성률 카드 */
+.stats-card { display: flex; align-items: center; gap: 24px; margin-bottom: 16px; flex-wrap: wrap; }
+.stat-streak { display: flex; align-items: center; gap: 12px; color: #ea580c; }
+.stat-streak strong { display: block; font-size: 22px; color: #172033; }
+.stat-streak span { font-size: 13px; color: #64748b; }
+.stat-goal { flex: 1; min-width: 220px; }
+.stat-goal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; color: #475569; font-weight: 650; }
+.stat-goal-head span { display: inline-flex; align-items: center; gap: 5px; }
+.stat-goal-head strong { color: #1d4ed8; }
+.goal-progress { height: 10px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+.goal-progress-fill { height: 100%; border-radius: 999px; background: #1d4ed8; transition: width 0.5s ease; }
+
 /* 운동 기록 */
 .exercise-page .card { margin-bottom: 16px; }
 .burn-total { display: inline-flex; align-items: center; gap: 6px; font-size: 18px; color: #ea580c; }

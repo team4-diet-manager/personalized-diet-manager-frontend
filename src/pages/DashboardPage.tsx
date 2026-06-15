@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { RefreshCw, Utensils } from 'lucide-react'
+import { Flame, RefreshCw, Target, Utensils } from 'lucide-react'
 import { api, isProfileMissing } from '../api'
-import type { DailyReportResponse, WeeklyReportResponse } from '../api'
+import type { DailyReportResponse, StatsResponse, WeeklyReportResponse } from '../api'
 import { localDateString } from '../constants'
 import { useProfile } from '../context/ProfileContext'
 import { useDailyRollover } from '../hooks/useDailyRollover'
@@ -16,6 +16,7 @@ export function DashboardPage() {
   const [date, setDate] = useState(() => localDateString())
   const [report, setReport] = useState<DailyReportResponse | null>(null)
   const [weekly, setWeekly] = useState<WeeklyReportResponse | null>(null)
+  const [stats, setStats] = useState<StatsResponse | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -40,12 +41,18 @@ export function DashboardPage() {
         setIsLoading(false)
       }
 
-      // 주간 추이는 실패해도 일일 리포트 표시에 영향을 주지 않도록 분리한다.
+      // 주간 추이·통계는 실패해도 일일 리포트 표시에 영향을 주지 않도록 분리한다.
       try {
         const week = await api.getWeeklyReport(profile.profileId, targetDate)
         setWeekly(week)
       } catch {
         setWeekly(null)
+      }
+      try {
+        const stat = await api.getStats(profile.profileId, targetDate)
+        setStats(stat)
+      } catch {
+        setStats(null)
       }
     },
     [profile, setProfile],
@@ -81,6 +88,31 @@ export function DashboardPage() {
         <p className="notice notice-warning" role="status">
           {notice}
         </p>
+      )}
+
+      {stats && (
+        <section className="card stats-card">
+          <div className="stat-streak">
+            <Flame size={26} aria-hidden="true" />
+            <div>
+              <strong>{stats.streak}일</strong>
+              <span>{stats.streak > 0 ? '연속 기록 중🔥' : '오늘 기록을 시작해보세요'}</span>
+            </div>
+          </div>
+          <div className="stat-goal">
+            <div className="stat-goal-head">
+              <span>
+                <Target size={15} aria-hidden="true" /> 이번 주 목표 달성
+              </span>
+              <strong>
+                {stats.weeklyAchievedDays}/7일 · {stats.achievementRate}%
+              </strong>
+            </div>
+            <div className="goal-progress">
+              <div className="goal-progress-fill" style={{ width: `${stats.achievementRate}%` }} />
+            </div>
+          </div>
+        </section>
       )}
 
       <div className="dashboard-grid">
