@@ -1,4 +1,4 @@
-import type { ActivityLevel, ExerciseType, FoodGrade, GoalType, Intensity, MealType } from './api'
+import type { ActivityLevel, ExerciseType, FoodGrade, FoodSortType, GoalType, Intensity, MealType } from './api'
 
 export const exerciseLabels: Record<ExerciseType, string> = {
   WALKING: '걷기',
@@ -60,4 +60,10 @@ export const mealLabels: Record<MealType, string> = {
   LUNCH: '점심',
   DINNER: '저녁',
   SNACK: '간식',
+}
+
+export const foodSortLabels: Record<FoodSortType, string> = {
+  RECOMMENDED: '추천순',
+  LOW_CALORIE: '칼로리 낮은순',
+  HIGH_PROTEIN: '단백질 높은순',
 }

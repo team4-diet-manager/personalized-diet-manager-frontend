@@ -2,8 +2,8 @@ import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Apple, CalendarDays, Pencil, Star, Trash2, X } from 'lucide-react'
 import { api } from '../api'
-import type { DailyMealLogResponse, MealLogResponse, MealType } from '../api'
-import { goalLabels, gradeMeta, localDateString, mealLabels } from '../constants'
+import type { DailyMealLogResponse, FoodSortType, MealLogResponse, MealType } from '../api'
+import { foodSortLabels, goalLabels, gradeMeta, localDateString, mealLabels } from '../constants'
 import { useProfile } from '../context/ProfileContext'
 import { useDailyRollover } from '../hooks/useDailyRollover'
 import { FoodCombobox } from '../components/FoodCombobox'
@@ -28,7 +28,7 @@ function loadIds(key: string): number[] {
 }
 
 export function MealLogPage() {
-  const { profile, foods, foodsError } = useProfile()
+  const { profile, foods, foodSortType, setFoodSortType, foodsError } = useProfile()
   const [date, setDate] = useState(() => localDateString())
 
   // 자정이 지나면, 오늘을 보고 있던 경우에만 새 날짜로 자동 이동한다.
@@ -305,7 +305,21 @@ export function MealLogPage() {
           </select>
         </label>
         <label className="wide">
-          음식
+          <span className="field-head">
+            음식
+            <select
+              className="inline-select"
+              value={foodSortType}
+              onChange={(event) => setFoodSortType(event.target.value as FoodSortType)}
+              disabled={!foods.length}
+            >
+              {Object.entries(foodSortLabels).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </span>
           <FoodCombobox
             foods={foods}
             value={foodId}

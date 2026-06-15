@@ -4,6 +4,7 @@ export type GoalType = 'WEIGHT_LOSS' | 'MUSCLE_GAIN' | 'MAINTAIN'
 export type MealType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK'
 export type ExerciseType = 'WALKING' | 'RUNNING' | 'CYCLING' | 'WEIGHT_TRAINING' | 'SWIMMING'
 export type Intensity = 'LOW' | 'MEDIUM' | 'HIGH'
+export type FoodSortType = 'RECOMMENDED' | 'LOW_CALORIE' | 'HIGH_PROTEIN'
 
 export interface SignupRequest {
   email: string
@@ -262,8 +263,17 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(body),
     }),
-  getFoods: (goalType?: GoalType) =>
-    request<FoodResponse[]>('/api/foods' + (goalType ? `?goalType=${goalType}` : '')),
+  getFoods: (goalType?: GoalType, sortType?: FoodSortType) => {
+    const params = new URLSearchParams()
+    if (goalType) {
+      params.set('goalType', goalType)
+    }
+    if (sortType) {
+      params.set('sortType', sortType)
+    }
+    const query = params.toString()
+    return request<FoodResponse[]>('/api/foods' + (query ? `?${query}` : ''))
+  },
   createMealLog: (body: MealLogRequest) =>
     request<MealLogResponse>('/api/meal-logs', {
       method: 'POST',

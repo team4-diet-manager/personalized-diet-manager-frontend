@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { ReactNode } from 'react'
 import { api } from '../api'
 import { useAuth } from './AuthContext'
-import type { FoodResponse, UserProfileRequest, UserProfileResponse } from '../api'
+import type { FoodResponse, FoodSortType, UserProfileRequest, UserProfileResponse } from '../api'
 
 interface ProfileContextValue {
   /** 온보딩~프로필 단계에서 누적 입력되는 폼 값 */
@@ -18,6 +18,8 @@ interface ProfileContextValue {
   isProfileLoading: boolean
   /** 기본 음식 목록 (앱 진입 시 1회 로드) */
   foods: FoodResponse[]
+  foodSortType: FoodSortType
+  setFoodSortType: (sortType: FoodSortType) => void
   foodsError: string | null
 }
 
@@ -39,6 +41,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<UserProfileResponse | null>(null)
   const [isProfileLoading, setIsProfileLoading] = useState(() => !!token)
   const [foods, setFoods] = useState<FoodResponse[]>([])
+  const [foodSortType, setFoodSortType] = useState<FoodSortType>('RECOMMENDED')
   const [foodsError, setFoodsError] = useState<string | null>(null)
 
   // 토큰 유무에 따라 서버에서 내 프로필 정보를 실시간 로드
@@ -70,10 +73,13 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     }
 
     api
-      .getFoods(profile?.goalType)
-      .then(setFoods)
+      .getFoods(profile?.goalType, foodSortType)
+      .then((data) => {
+        setFoods(data)
+        setFoodsError(null)
+      })
       .catch((error: Error) => setFoodsError(error.message))
-  }, [profile?.goalType, token])
+  }, [profile?.goalType, token, foodSortType])
 
   const updateProfileForm = useCallback(
     <K extends keyof UserProfileRequest>(key: K, value: UserProfileRequest[K]) => {
@@ -83,8 +89,18 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   )
 
   const value = useMemo<ProfileContextValue>(
-    () => ({ profileForm, updateProfileForm, profile, setProfile, isProfileLoading, foods, foodsError }),
-    [profileForm, updateProfileForm, profile, setProfile, isProfileLoading, foods, foodsError],
+    () => ({
+      profileForm,
+      updateProfileForm,
+      profile,
+      setProfile,
+      isProfileLoading,
+      foods,
+      foodSortType,
+      setFoodSortType,
+      foodsError,
+    }),
+    [profileForm, updateProfileForm, profile, setProfile, isProfileLoading, foods, foodSortType, foodsError],
   )
 
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>
