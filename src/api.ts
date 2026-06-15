@@ -41,6 +41,10 @@ export interface FoodResponse {
   proteinGrams: number
   carbGrams: number
   fatGrams: number
+  sugarGrams: number
+  sodiumMg: number
+  saturatedFatGrams: number
+  fiberGrams: number
   grade?: FoodGrade | null
 }
 

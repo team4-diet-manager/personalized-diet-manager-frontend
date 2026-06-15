@@ -192,6 +192,20 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 .food-chip-kcal { color: #64748b; font-weight: 650; }
 .recent-foods-label { display: inline-flex; align-items: center; gap: 5px; }
 
+/* ===== 음식 영양정보 카드 ===== */
+.nutrition-card { margin-bottom: 16px; }
+.nutrition-serving { color: #94a3b8; font-size: 12px; font-weight: 600; }
+.nutrition-grade { font-size: 13px; font-weight: 750; white-space: nowrap; }
+.nutrition-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.nutrition-item { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border-radius: 8px; background: #f8fafc; }
+.nutrition-item span { font-size: 12px; color: #64748b; font-weight: 650; }
+.nutrition-item strong { font-size: 15px; color: #172033; }
+.nutrition-item.primary { background: #eff6ff; }
+.nutrition-item.primary strong { color: #1d4ed8; }
+.nutrition-item.sub { background: #fff; border: 1px dashed #e2e8f0; }
+.nutrition-item.sub span, .nutrition-item.sub strong { color: #64748b; }
+@media (max-width: 640px) { .nutrition-grid { grid-template-columns: repeat(2, 1fr); } }
+
 /* ===== 식단 기록 ===== */
 .calorie-preview { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1px solid #d7dde3; border-radius: 8px; background: #f8fafc; color: #334155; font-weight: 750; }
 .meallog-page .card { margin-bottom: 16px; }

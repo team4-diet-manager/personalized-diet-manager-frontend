@@ -353,6 +353,56 @@ export function MealLogPage() {
         </div>
       </form>
 
+      {selectedFood && (
+        <section className="card nutrition-card">
+          <div className="records-head">
+            <h2>
+              {selectedFood.name} 영양정보
+              <span className="nutrition-serving"> · {selectedFood.servingSize} 기준</span>
+            </h2>
+            {selectedFood.grade && (
+              <span className="nutrition-grade" style={{ color: gradeMeta[selectedFood.grade].color }}>
+                ● {gradeMeta[selectedFood.grade].label}
+              </span>
+            )}
+          </div>
+          <div className="nutrition-grid">
+            <div className="nutrition-item primary">
+              <span>칼로리</span>
+              <strong>{selectedFood.calories} kcal</strong>
+            </div>
+            <div className="nutrition-item">
+              <span>탄수화물</span>
+              <strong>{selectedFood.carbGrams} g</strong>
+            </div>
+            <div className="nutrition-item sub">
+              <span>· 당류</span>
+              <strong>{selectedFood.sugarGrams} g</strong>
+            </div>
+            <div className="nutrition-item sub">
+              <span>· 식이섬유</span>
+              <strong>{selectedFood.fiberGrams} g</strong>
+            </div>
+            <div className="nutrition-item">
+              <span>단백질</span>
+              <strong>{selectedFood.proteinGrams} g</strong>
+            </div>
+            <div className="nutrition-item">
+              <span>지방</span>
+              <strong>{selectedFood.fatGrams} g</strong>
+            </div>
+            <div className="nutrition-item sub">
+              <span>· 포화지방</span>
+              <strong>{selectedFood.saturatedFatGrams} g</strong>
+            </div>
+            <div className="nutrition-item">
+              <span>나트륨</span>
+              <strong>{selectedFood.sodiumMg} mg</strong>
+            </div>
+          </div>
+        </section>
+      )}
+
       <section className="card">
         <div className="records-head">
           <h2>{date} 기록</h2>
