@@ -5,8 +5,8 @@ interface CalorieRingProps {
 
 /** 권장 칼로리 대비 섭취 칼로리를 원형 진행 링으로 표현 */
 export function CalorieRing({ recommended, intake }: CalorieRingProps) {
-  const size = 200
-  const stroke = 18
+  const size = 168
+  const stroke = 15
   const radius = (size - stroke) / 2
   const circumference = 2 * Math.PI * radius
 
