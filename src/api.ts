@@ -120,6 +120,14 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * 저장된 프로필이 서버에 없는 경우(예: 서버 재시작으로 인메모리 DB 초기화)인지 판별한다.
+ * 단순 404(예: 미배포 엔드포인트)와 구분하기 위해 프로필 관련 메시지인지까지 확인한다.
+ */
+export function isProfileMissing(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 404 && error.message.includes('프로필')
+}
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {

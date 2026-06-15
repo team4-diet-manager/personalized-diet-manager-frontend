@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { RefreshCw, Utensils } from 'lucide-react'
-import { api, ApiError } from '../api'
+import { api, isProfileMissing } from '../api'
 import type { DailyReportResponse, WeeklyReportResponse } from '../api'
 import { localDateString } from '../constants'
 import { useProfile } from '../context/ProfileContext'
@@ -31,7 +31,7 @@ export function DashboardPage() {
         setNotice(null)
       } catch (error) {
         // 저장된 프로필이 서버에 없으면(예: 서버 재시작으로 인메모리 DB 초기화) 온보딩부터 다시.
-        if (error instanceof ApiError && error.status === 404) {
+        if (isProfileMissing(error)) {
           setProfile(null)
           return
         }

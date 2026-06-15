@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Scale } from 'lucide-react'
-import { api, ApiError } from '../api'
+import { api, isProfileMissing } from '../api'
 import type { WeightLogResponse } from '../api'
 import { localDateString } from '../constants'
 import { useProfile } from '../context/ProfileContext'
@@ -23,7 +23,7 @@ export function WeightLogPage() {
       const data = await api.getWeightLogs(profile.profileId)
       setLogs(data)
     } catch (error) {
-      if (error instanceof ApiError && error.status === 404) {
+      if (isProfileMissing(error)) {
         setProfile(null)
         return
       }
@@ -51,7 +51,7 @@ export function WeightLogPage() {
       await loadLogs()
       setNotice('체중이 기록되었습니다.')
     } catch (error) {
-      if (error instanceof ApiError && error.status === 404) {
+      if (isProfileMissing(error)) {
         setProfile(null)
         return
       }
