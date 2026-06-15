@@ -1,19 +1,19 @@
 interface CalorieRingProps {
   recommended: number
-  intake: number
+  current: number
 }
 
-/** 권장 칼로리 대비 섭취 칼로리를 원형 진행 링으로 표현 */
-export function CalorieRing({ recommended, intake }: CalorieRingProps) {
+/** 권장 칼로리 대비 현재 칼로리를 원형 진행 링으로 표현 */
+export function CalorieRing({ recommended, current }: CalorieRingProps) {
   const size = 168
   const stroke = 15
   const radius = (size - stroke) / 2
   const circumference = 2 * Math.PI * radius
 
-  const ratio = recommended > 0 ? Math.min(intake / recommended, 1) : 0
+  const ratio = recommended > 0 ? Math.min(Math.max(current / recommended, 0), 1) : 0
   const offset = circumference * (1 - ratio)
 
-  const remaining = recommended - intake
+  const remaining = recommended - current
   const over = remaining < 0
 
   return (
@@ -42,7 +42,7 @@ export function CalorieRing({ recommended, intake }: CalorieRingProps) {
         />
       </svg>
       <div className="ring-center">
-        <strong>{intake}</strong>
+        <strong>{current}</strong>
         <span>/ {recommended} kcal</span>
         <em className={over ? 'over' : 'under'}>
           {over ? `${Math.abs(remaining)} 초과` : `${remaining} 남음`}

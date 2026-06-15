@@ -5,14 +5,15 @@ import { api, isProfileMissing } from '../api'
 import type { WeightLogResponse } from '../api'
 import { localDateString } from '../constants'
 import { useProfile } from '../context/ProfileContext'
+import { useToast } from '../context/ToastContext'
 import { WeightTrend } from '../components/WeightTrend'
 
 export function WeightLogPage() {
   const { profile, setProfile } = useProfile()
+  const { showToast } = useToast()
   const [logDate, setLogDate] = useState(() => localDateString())
   const [weight, setWeight] = useState(() => profile?.weight ?? 0)
   const [logs, setLogs] = useState<WeightLogResponse[]>([])
-  const [notice, setNotice] = useState<string | null>(null)
   const [isBusy, setIsBusy] = useState(false)
 
   const loadLogs = useCallback(async () => {
@@ -27,7 +28,7 @@ export function WeightLogPage() {
         setProfile(null)
         return
       }
-      setNotice(error instanceof Error ? error.message : '체중 기록 조회에 실패했습니다.')
+      showToast(error instanceof Error ? error.message : '체중 기록 조회에 실패했습니다.')
     }
   }, [profile, setProfile])
 
@@ -41,7 +42,7 @@ export function WeightLogPage() {
       return
     }
     if (weight <= 0) {
-      setNotice('체중은 0보다 커야 합니다.')
+      showToast('체중은 0보다 커야 합니다.')
       return
     }
 
@@ -49,13 +50,13 @@ export function WeightLogPage() {
     try {
       await api.recordWeight({ profileId: profile.profileId, logDate, weight })
       await loadLogs()
-      setNotice('체중이 기록되었습니다.')
+      showToast('체중이 기록되었습니다.', 'success')
     } catch (error) {
       if (isProfileMissing(error)) {
         setProfile(null)
         return
       }
-      setNotice(error instanceof Error ? error.message : '체중 기록에 실패했습니다.')
+      showToast(error instanceof Error ? error.message : '체중 기록에 실패했습니다.')
     } finally {
       setIsBusy(false)
     }
@@ -73,12 +74,6 @@ export function WeightLogPage() {
           <p>날짜별 체중을 기록하고 변화를 추적하세요.</p>
         </div>
       </div>
-
-      {notice && (
-        <p className="notice notice-warning" role="status">
-          {notice}
-        </p>
-      )}
 
       <form className="form-grid card" onSubmit={handleSubmit}>
         <label>

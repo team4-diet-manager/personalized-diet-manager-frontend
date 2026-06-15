@@ -5,13 +5,16 @@ import './index.css'
 import App from './App.tsx'
 import { AuthProvider } from './context/AuthContext'
 import { ProfileProvider } from './context/ProfileContext'
+import { ToastProvider } from './context/ToastContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
         <ProfileProvider>
-          <App />
+          <ToastProvider>
+            <App />
+          </ToastProvider>
         </ProfileProvider>
       </AuthProvider>
     </BrowserRouter>

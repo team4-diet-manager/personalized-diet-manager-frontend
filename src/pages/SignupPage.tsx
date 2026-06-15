@@ -1,56 +1,46 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { AlertCircle, UserPlus } from 'lucide-react'
+import { UserPlus } from 'lucide-react'
 import { api } from '../api'
-import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 
 export function SignupPage() {
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const { showToast } = useToast()
   const [email, setEmail] = useState('')
   const [nickname, setNickname] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!email || !nickname || !password || !confirmPassword) {
-      setError('모든 필드를 입력해 주세요.')
+      showToast('모든 필드를 입력해 주세요.')
       return
     }
-
     if (nickname.length < 2 || nickname.length > 20) {
-      setError('닉네임은 2자 이상 20자 이하로 입력해야 합니다.')
+      showToast('닉네임은 2자 이상 20자 이하로 입력해야 합니다.')
       return
     }
-
     if (password !== confirmPassword) {
-      setError('비밀번호가 일치하지 않습니다.')
+      showToast('비밀번호가 일치하지 않습니다.')
       return
     }
-
     if (password.length < 6 || password.length > 20) {
-      setError('비밀번호는 6자 이상 20자 이하로 입력해야 합니다.')
+      showToast('비밀번호는 6자 이상 20자 이하로 입력해야 합니다.')
       return
     }
 
     setIsLoading(true)
-    setError(null)
-
     try {
-      // 1. 회원가입 API 호출
       await api.signup({ email, password, nickname })
       // 닉네임을 프로필 이름으로 쓰기 위해 저장(온보딩에서 별도 이름 입력 없음)
       localStorage.setItem('pdm.nickname', nickname)
-      // 2. 가입 완료 후 자동 로그인 처리
-      await login({ email, password })
-      // 3. 목표 선택 페이지(/goal)로 즉시 이동
-      navigate('/goal')
+      navigate('/login')
     } catch (err) {
-      setError(err instanceof Error ? err.message : '회원가입에 실패했습니다.')
+      showToast(err instanceof Error ? err.message : '회원가입에 실패했습니다.')
     } finally {
       setIsLoading(false)
     }
@@ -63,13 +53,6 @@ export function SignupPage() {
           <h1>Personalized Diet Manager</h1>
           <p>새로운 계정을 만들고 맞춤형 식단 관리를 시작하세요.</p>
         </div>
-
-        {error && (
-          <div className="auth-error" role="alert">
-            <AlertCircle size={18} />
-            <span>{error}</span>
-          </div>
-        )}
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <label htmlFor="email">

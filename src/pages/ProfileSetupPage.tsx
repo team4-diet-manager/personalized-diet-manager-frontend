@@ -6,12 +6,13 @@ import { api, isProfileMissing } from '../api'
 import type { ActivityLevel, Gender } from '../api'
 import { activityLabels, goalEmojis, goalLabels } from '../constants'
 import { useProfile } from '../context/ProfileContext'
+import { useToast } from '../context/ToastContext'
 
 export function ProfileSetupPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { profileForm, updateProfileForm, profile, setProfile } = useProfile()
-  const [notice, setNotice] = useState<string | null>(null)
+  const { showToast } = useToast()
   const [isSaving, setIsSaving] = useState(false)
 
   // "프로필 수정"으로 진입한 경우에만 수정 모드. 온보딩(목표 선택) 흐름과 구분한다.
@@ -40,7 +41,7 @@ export function ProfileSetupPage() {
     event.preventDefault()
 
     if (profileForm.age <= 0 || profileForm.height <= 0 || profileForm.weight <= 0) {
-      setNotice('나이, 키, 몸무게는 모두 1 이상이어야 합니다.')
+      showToast('나이, 키, 몸무게는 모두 1 이상이어야 합니다.')
       return
     }
 
@@ -68,7 +69,7 @@ export function ProfileSetupPage() {
       setProfile(saved)
       navigate('/dashboard')
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : '프로필 저장에 실패했습니다.')
+      showToast(error instanceof Error ? error.message : '프로필 저장에 실패했습니다.')
     } finally {
       setIsSaving(false)
     }
@@ -83,12 +84,6 @@ export function ProfileSetupPage() {
           {goalEmojis[profileForm.goalType]} 목표: {goalLabels[profileForm.goalType]} · 변경
         </button>
       </div>
-
-      {notice && (
-        <p className="notice notice-warning" role="status">
-          {notice}
-        </p>
-      )}
 
       <form className="form-grid" onSubmit={handleSubmit}>
         <label>

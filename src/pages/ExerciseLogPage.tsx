@@ -5,16 +5,17 @@ import { api, isProfileMissing } from '../api'
 import type { DailyExerciseLogResponse, ExerciseType, Intensity } from '../api'
 import { exerciseLabels, intensityLabels, localDateString } from '../constants'
 import { useProfile } from '../context/ProfileContext'
+import { useToast } from '../context/ToastContext'
 import { useDailyRollover } from '../hooks/useDailyRollover'
 
 export function ExerciseLogPage() {
   const { profile, setProfile } = useProfile()
+  const { showToast } = useToast()
   const [date, setDate] = useState(() => localDateString())
   const [exerciseType, setExerciseType] = useState<ExerciseType>('RUNNING')
   const [durationMinutes, setDurationMinutes] = useState(30)
   const [intensity, setIntensity] = useState<Intensity>('MEDIUM')
   const [logs, setLogs] = useState<DailyExerciseLogResponse | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
   const [isBusy, setIsBusy] = useState(false)
 
   useDailyRollover((newToday, prevToday) => {
@@ -34,7 +35,7 @@ export function ExerciseLogPage() {
           setProfile(null)
           return
         }
-        setNotice(error instanceof Error ? error.message : '운동 기록 조회에 실패했습니다.')
+        showToast(error instanceof Error ? error.message : '운동 기록 조회에 실패했습니다.')
       }
     },
     [profile, setProfile],
@@ -50,7 +51,7 @@ export function ExerciseLogPage() {
       return
     }
     if (durationMinutes < 1) {
-      setNotice('운동 시간은 1분 이상이어야 합니다.')
+      showToast('운동 시간은 1분 이상이어야 합니다.')
       return
     }
 
@@ -64,13 +65,13 @@ export function ExerciseLogPage() {
         intensity,
       })
       await loadLogs(date)
-      setNotice('운동이 기록되었습니다.')
+      showToast('운동이 기록되었습니다.', 'success')
     } catch (error) {
       if (isProfileMissing(error)) {
         setProfile(null)
         return
       }
-      setNotice(error instanceof Error ? error.message : '운동 기록에 실패했습니다.')
+      showToast(error instanceof Error ? error.message : '운동 기록에 실패했습니다.')
     } finally {
       setIsBusy(false)
     }
@@ -81,9 +82,9 @@ export function ExerciseLogPage() {
     try {
       await api.deleteExerciseLog(exerciseLogId)
       await loadLogs(date)
-      setNotice('운동 기록이 삭제되었습니다.')
+      showToast('운동 기록이 삭제되었습니다.', 'success')
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : '운동 기록 삭제에 실패했습니다.')
+      showToast(error instanceof Error ? error.message : '운동 기록 삭제에 실패했습니다.')
     } finally {
       setIsBusy(false)
     }
@@ -99,12 +100,6 @@ export function ExerciseLogPage() {
           <p>운동을 기록하면 종류·강도별로 소모 칼로리가 계산됩니다.</p>
         </div>
       </div>
-
-      {notice && (
-        <p className="notice notice-warning" role="status">
-          {notice}
-        </p>
-      )}
 
       <form className="form-grid card" onSubmit={handleSubmit}>
         <label>

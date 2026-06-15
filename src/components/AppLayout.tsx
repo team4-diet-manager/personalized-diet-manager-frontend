@@ -59,15 +59,16 @@ export function AppLayout() {
           <button onClick={handleLogout} className="logout-btn" style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '6px',
+            gap: '5px',
             background: 'none',
-            border: 'none',
+            border: '1px solid transparent',
             color: '#64748b',
             cursor: 'pointer',
-            padding: '8px 12px',
-            fontSize: '14px',
-            fontWeight: 500,
-            borderRadius: '6px',
+            padding: '0 11px',
+            minHeight: '34px',
+            fontSize: '13px',
+            fontWeight: 700,
+            borderRadius: '8px',
             transition: 'all 0.2s'
           }}>
             <LogOut size={18} aria-hidden="true" />

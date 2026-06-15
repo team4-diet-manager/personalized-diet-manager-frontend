@@ -5,6 +5,7 @@ import { api, isProfileMissing } from '../api'
 import type { DailyReportResponse, StatsResponse, WeeklyReportResponse } from '../api'
 import { localDateString } from '../constants'
 import { useProfile } from '../context/ProfileContext'
+import { useToast } from '../context/ToastContext'
 import { useDailyRollover } from '../hooks/useDailyRollover'
 import { CalorieRing } from '../components/CalorieRing'
 import { MacroBars } from '../components/MacroBars'
@@ -13,11 +14,11 @@ import { WeeklyTrend } from '../components/WeeklyTrend'
 export function DashboardPage() {
   const navigate = useNavigate()
   const { profile, setProfile } = useProfile()
+  const { showToast } = useToast()
   const [date, setDate] = useState(() => localDateString())
   const [report, setReport] = useState<DailyReportResponse | null>(null)
   const [weekly, setWeekly] = useState<WeeklyReportResponse | null>(null)
   const [stats, setStats] = useState<StatsResponse | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   const loadReport = useCallback(
@@ -29,14 +30,12 @@ export function DashboardPage() {
       try {
         const daily = await api.getDailyReport(targetDate)
         setReport(daily)
-        setNotice(null)
       } catch (error) {
-        // 저장된 프로필이 서버에 없으면(예: 서버 재시작으로 인메모리 DB 초기화) 온보딩부터 다시.
         if (isProfileMissing(error)) {
           setProfile(null)
           return
         }
-        setNotice(error instanceof Error ? error.message : '리포트 조회에 실패했습니다.')
+        showToast(error instanceof Error ? error.message : '리포트 조회에 실패했습니다.')
       } finally {
         setIsLoading(false)
       }
@@ -84,12 +83,6 @@ export function DashboardPage() {
         </div>
       </div>
 
-      {notice && (
-        <p className="notice notice-warning" role="status">
-          {notice}
-        </p>
-      )}
-
       {stats && (
         <section className="card stats-card">
           <div className="stat-streak">
@@ -120,7 +113,7 @@ export function DashboardPage() {
           <h2>칼로리</h2>
           <CalorieRing
             recommended={report?.recommendedCalories ?? 0}
-            intake={report?.intakeCalories ?? 0}
+            current={report?.netCalories ?? 0}
           />
           {report && report.burnedCalories > 0 && (
             <p className="net-line">

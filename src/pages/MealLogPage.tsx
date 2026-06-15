@@ -1,10 +1,11 @@
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Apple, CalendarDays, Pencil, Star, Trash2, X } from 'lucide-react'
 import { api } from '../api'
 import type { DailyMealLogResponse, FoodSortType, MealLogResponse, MealType } from '../api'
 import { foodSortLabels, goalLabels, gradeMeta, localDateString, mealLabels } from '../constants'
 import { useProfile } from '../context/ProfileContext'
+import { useToast } from '../context/ToastContext'
 import { useDailyRollover } from '../hooks/useDailyRollover'
 import { FoodCombobox } from '../components/FoodCombobox'
 
@@ -28,6 +29,7 @@ function loadIds(key: string): number[] {
 }
 
 export function MealLogPage() {
+  const { showToast } = useToast()
   const { profile, foods, foodSortType, setFoodSortType, foodsError } = useProfile()
   const [date, setDate] = useState(() => localDateString())
 
@@ -41,10 +43,10 @@ export function MealLogPage() {
   const [quantity, setQuantity] = useState(1)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [logs, setLogs] = useState<DailyMealLogResponse | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
   const [isBusy, setIsBusy] = useState(false)
   const [recentFoodIds, setRecentFoodIds] = useState<number[]>(() => loadIds(RECENT_FOODS_KEY))
   const [favoriteIds, setFavoriteIds] = useState<number[]>(() => loadIds(FAVORITE_FOODS_KEY))
+  const formRef = useRef<HTMLFormElement>(null)
 
   // 최근 음식 목록 맨 앞에 추가(중복 제거, 최대 개수 유지) 후 localStorage에 저장.
   function pushRecentFood(id: number) {
@@ -110,10 +112,13 @@ export function MealLogPage() {
     [profile],
   )
 
-  // 선택한 날짜가 바뀌면 해당 날짜 기록을 자동으로 다시 불러온다.
   useEffect(() => {
-    loadLogs(date).catch((error: Error) => setNotice(error.message))
+    loadLogs(date).catch((error: Error) => showToast(error.message))
   }, [loadLogs, date])
+
+  useEffect(() => {
+    if (foodsError) showToast(foodsError)
+  }, [foodsError, showToast])
 
   function resetForm() {
     setEditingId(null)
@@ -127,7 +132,9 @@ export function MealLogPage() {
     setMealType(log.mealType)
     setFoodId(log.foodId)
     setQuantity(log.quantity)
-    setNotice(null)
+    requestAnimationFrame(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
   }
 
   async function handleDelete(mealLogId: number) {
@@ -141,9 +148,9 @@ export function MealLogPage() {
         resetForm()
       }
       await loadLogs(date)
-      setNotice('식단 기록이 삭제되었습니다.')
+      showToast('식단 기록이 삭제되었습니다.', 'success')
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : '식단 기록 삭제에 실패했습니다.')
+      showToast(error instanceof Error ? error.message : '식단 기록 삭제에 실패했습니다.')
     } finally {
       setIsBusy(false)
     }
@@ -152,15 +159,15 @@ export function MealLogPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!profile || !foods.length) {
-      setNotice('음식 목록을 불러온 뒤 식단을 기록할 수 있습니다.')
+      showToast('음식 목록을 불러온 뒤 식단을 기록할 수 있습니다.')
       return
     }
     if (!selectedFood || foodId === null) {
-      setNotice('음식을 선택해주세요.')
+      showToast('음식을 선택해주세요.')
       return
     }
     if (quantity < 1) {
-      setNotice('섭취 수량은 1 이상이어야 합니다.')
+      showToast('섭취 수량은 1 이상이어야 합니다.')
       return
     }
 
@@ -169,16 +176,16 @@ export function MealLogPage() {
       const body = { profileId: profile.profileId, mealDate: date, mealType, foodId, quantity }
       if (editingId !== null) {
         await api.updateMealLog(editingId, body)
-        setNotice('식단 기록이 수정되었습니다.')
+        showToast('식단 기록이 수정되었습니다.', 'success')
       } else {
         await api.createMealLog(body)
         pushRecentFood(foodId)
-        setNotice('식단 기록이 저장되었습니다.')
+        showToast('식단 기록이 저장되었습니다.', 'success')
       }
       resetForm()
       await loadLogs(date)
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : '식단 기록에 실패했습니다.')
+      showToast(error instanceof Error ? error.message : '식단 기록에 실패했습니다.')
     } finally {
       setIsBusy(false)
     }
@@ -201,9 +208,9 @@ export function MealLogPage() {
       pushRecentFood(quickFoodId)
       await loadLogs(date)
       const added = foods.find((food) => food.foodId === quickFoodId)
-      setNotice(`${mealLabels[mealType]}에 ${added?.name ?? '음식'}을(를) 추가했습니다.`)
+      showToast(`${mealLabels[mealType]}에 ${added?.name ?? '음식'}을(를) 추가했습니다.`, 'success')
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : '식단 기록에 실패했습니다.')
+      showToast(error instanceof Error ? error.message : '식단 기록에 실패했습니다.')
     } finally {
       setIsBusy(false)
     }
@@ -221,16 +228,10 @@ export function MealLogPage() {
         </div>
       </div>
 
-      {(notice || foodsError) && (
-        <p className="notice notice-warning" role="status">
-          {notice ?? foodsError}
-        </p>
-      )}
-
-      <form className="form-grid card" onSubmit={handleSubmit}>
+      <form ref={formRef} className="form-grid card" onSubmit={handleSubmit}>
         {isEditing && (
           <p className="notice notice-info wide" role="status">
-            기록을 수정하는 중입니다.
+            식단 기록 수정
           </p>
         )}
         {!isEditing && favoriteFoods.length > 0 && (
