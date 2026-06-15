@@ -107,9 +107,13 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 
 /* 체중 변화 차트 */
 .weight-page .card { margin-bottom: 16px; }
+.weight-trend-wrap { display: flex; flex-direction: column; gap: 8px; }
+.weight-current { display: flex; align-items: baseline; gap: 10px; }
+.weight-current strong { font-size: 24px; color: #172033; }
+.weight-current .over { color: #ef4444; font-size: 13px; font-weight: 700; }
+.weight-current .under { color: #1d4ed8; font-size: 13px; font-weight: 700; }
 .weight-trend { width: 100%; height: auto; }
 .weight-trend .trend-axis { fill: #64748b; font-size: 10px; font-weight: 700; }
-.weight-trend .trend-value { fill: #1d4ed8; font-size: 11px; font-weight: 750; }
 
 .ring-wrap { position: relative; display: grid; place-items: center; padding: 8px 0; }
 .ring-center { position: absolute; display: grid; justify-items: center; gap: 2px; text-align: center; }

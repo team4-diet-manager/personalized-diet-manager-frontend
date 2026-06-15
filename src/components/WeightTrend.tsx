@@ -14,9 +14,9 @@ export function WeightTrend({ logs }: WeightTrendProps) {
   const width = 360
   const height = 200
   const padTop = 16
-  const padBottom = 26
-  const padLeft = 36
-  const padRight = 14
+  const padBottom = 28
+  const padLeft = 44
+  const padRight = 18
   const plotW = width - padLeft - padRight
   const plotH = height - padTop - padBottom
 
@@ -36,40 +36,44 @@ export function WeightTrend({ logs }: WeightTrendProps) {
   const latest = logs[logs.length - 1]
   const first = logs[0]
   const diff = latest.weight - first.weight
+  const diffText = diff === 0 ? '변화 없음' : `${diff > 0 ? '+' : ''}${diff.toFixed(1)}kg`
 
   return (
-    <svg
-      className="weight-trend"
-      viewBox={`0 0 ${width} ${height}`}
-      role="img"
-      aria-label="체중 변화 추이"
-    >
-      {/* y축 최소·최대 라벨 */}
-      <text x={padLeft - 6} y={yOf(high) + 4} textAnchor="end" className="trend-axis">
-        {high.toFixed(1)}
-      </text>
-      <text x={padLeft - 6} y={yOf(low) + 4} textAnchor="end" className="trend-axis">
-        {low.toFixed(1)}
-      </text>
+    <div className="weight-trend-wrap">
+      <div className="weight-current">
+        <strong>{latest.weight}kg</strong>
+        {logs.length > 1 && (
+          <span className={diff > 0 ? 'over' : 'under'}>처음 대비 {diffText}</span>
+        )}
+      </div>
 
-      {logs.length > 1 && (
-        <polyline points={points} fill="none" stroke="#1d4ed8" strokeWidth={2} />
-      )}
+      <svg
+        className="weight-trend"
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-label="체중 변화 추이"
+      >
+        {/* y축 최소·최대 라벨 */}
+        <text x={padLeft - 8} y={yOf(high) + 4} textAnchor="end" className="trend-axis">
+          {high.toFixed(1)}
+        </text>
+        <text x={padLeft - 8} y={yOf(low) + 4} textAnchor="end" className="trend-axis">
+          {low.toFixed(1)}
+        </text>
 
-      {logs.map((log, index) => (
-        <g key={log.weightLogId}>
-          <circle cx={xOf(index)} cy={yOf(log.weight)} r={3.5} fill="#1d4ed8" />
-          <text x={xOf(index)} y={height - 9} textAnchor="middle" className="trend-axis">
-            {shortDate(log.logDate)}
-          </text>
-        </g>
-      ))}
+        {logs.length > 1 && (
+          <polyline points={points} fill="none" stroke="#1d4ed8" strokeWidth={2} />
+        )}
 
-      {/* 최신 값 강조 */}
-      <text x={xOf(logs.length - 1)} y={yOf(latest.weight) - 8} textAnchor="middle" className="trend-value">
-        {latest.weight}kg
-        {logs.length > 1 ? ` (${diff > 0 ? '+' : ''}${diff.toFixed(1)})` : ''}
-      </text>
-    </svg>
+        {logs.map((log, index) => (
+          <g key={log.weightLogId}>
+            <circle cx={xOf(index)} cy={yOf(log.weight)} r={3.5} fill="#1d4ed8" />
+            <text x={xOf(index)} y={height - 10} textAnchor="middle" className="trend-axis">
+              {shortDate(log.logDate)}
+            </text>
+          </g>
+        ))}
+      </svg>
+    </div>
   )
 }
