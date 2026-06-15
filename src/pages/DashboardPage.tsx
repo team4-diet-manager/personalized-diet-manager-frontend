@@ -90,6 +90,12 @@ export function DashboardPage() {
             recommended={report?.recommendedCalories ?? 0}
             intake={report?.intakeCalories ?? 0}
           />
+          {report && report.burnedCalories > 0 && (
+            <p className="net-line">
+              섭취 {report.intakeCalories} − 운동 {report.burnedCalories} ={' '}
+              <strong>순 {report.netCalories} kcal</strong>
+            </p>
+          )}
           <p className="card-msg">{report?.message ?? '날짜를 선택해 조회하세요.'}</p>
         </section>
 

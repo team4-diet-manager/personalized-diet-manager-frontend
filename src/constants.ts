@@ -1,4 +1,18 @@
-import type { ActivityLevel, FoodGrade, GoalType, MealType } from './api'
+import type { ActivityLevel, ExerciseType, FoodGrade, GoalType, Intensity, MealType } from './api'
+
+export const exerciseLabels: Record<ExerciseType, string> = {
+  WALKING: '걷기',
+  RUNNING: '달리기',
+  CYCLING: '자전거',
+  WEIGHT_TRAINING: '근력운동',
+  SWIMMING: '수영',
+}
+
+export const intensityLabels: Record<Intensity, string> = {
+  LOW: '낮음',
+  MEDIUM: '보통',
+  HIGH: '높음',
+}
 
 /** 음식 신호등 등급별 라벨·색상 */
 export const gradeMeta: Record<FoodGrade, { label: string; color: string }> = {

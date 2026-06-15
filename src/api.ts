@@ -2,6 +2,8 @@ export type Gender = 'MALE' | 'FEMALE'
 export type ActivityLevel = 'LOW' | 'NORMAL' | 'HIGH'
 export type GoalType = 'WEIGHT_LOSS' | 'MUSCLE_GAIN' | 'MAINTAIN'
 export type MealType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK'
+export type ExerciseType = 'WALKING' | 'RUNNING' | 'CYCLING' | 'WEIGHT_TRAINING' | 'SWIMMING'
+export type Intensity = 'LOW' | 'MEDIUM' | 'HIGH'
 
 export interface UserProfileRequest {
   gender: Gender
@@ -80,6 +82,32 @@ export interface DailyReportResponse {
   message: string
   recommendedMacros: MacroNutrients
   intakeMacros: MacroNutrients
+  burnedCalories: number
+  netCalories: number
+}
+
+export interface ExerciseLogRequest {
+  profileId: number
+  exerciseDate: string
+  exerciseType: ExerciseType
+  durationMinutes: number
+  intensity: Intensity
+}
+
+export interface ExerciseLogResponse {
+  exerciseLogId: number
+  exerciseDate: string
+  exerciseType: ExerciseType
+  durationMinutes: number
+  intensity: Intensity
+  burnedCalories: number
+}
+
+export interface DailyExerciseLogResponse {
+  profileId: number
+  exerciseDate: string
+  exerciseLogs: ExerciseLogResponse[]
+  dailyTotalBurned: number
 }
 
 export interface WeeklyReportDay {
@@ -212,4 +240,15 @@ export const api = {
     }),
   getWeightLogs: (profileId: number) =>
     request<WeightLogResponse[]>(`/api/weight-logs?profileId=${profileId}`),
+  createExerciseLog: (body: ExerciseLogRequest) =>
+    request<ExerciseLogResponse>('/api/exercise-logs', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  getExerciseLogs: (profileId: number, date: string) =>
+    request<DailyExerciseLogResponse>(
+      `/api/exercise-logs?profileId=${profileId}&date=${date}`,
+    ),
+  deleteExerciseLog: (exerciseLogId: number) =>
+    request<void>(`/api/exercise-logs/${exerciseLogId}`, { method: 'DELETE' }),
 }

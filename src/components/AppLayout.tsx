@@ -1,5 +1,5 @@
 import { NavLink, Navigate, Outlet } from 'react-router-dom'
-import { LayoutDashboard, Scale, UserCog, Utensils } from 'lucide-react'
+import { Dumbbell, LayoutDashboard, Scale, UserCog, Utensils } from 'lucide-react'
 import { useProfile } from '../context/ProfileContext'
 import { goalLabels } from '../constants'
 
@@ -36,6 +36,10 @@ export function AppLayout() {
           <NavLink to="/weight" className={({ isActive }) => (isActive ? 'active' : '')}>
             <Scale size={18} aria-hidden="true" />
             체중 기록
+          </NavLink>
+          <NavLink to="/exercise" className={({ isActive }) => (isActive ? 'active' : '')}>
+            <Dumbbell size={18} aria-hidden="true" />
+            운동 기록
           </NavLink>
           <NavLink
             to="/profile"
