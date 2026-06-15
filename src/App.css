@@ -152,7 +152,9 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 .combobox-option.active { background: #eff6ff; }
 .combobox-option.selected { background: #dbeafe; }
 .combobox-name { font-size: 14px; font-weight: 700; color: #172033; }
-.combobox-meta { font-size: 12px; color: #64748b; white-space: nowrap; }
+.combobox-meta { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: #64748b; white-space: nowrap; }
+.fav-toggle { min-height: 0; padding: 2px; border: none; background: transparent; line-height: 0; }
+.fav-toggle:hover { border: none; background: #fef3c7; border-radius: 6px; }
 .combobox-empty { padding: 12px 10px; color: #94a3b8; font-size: 13px; text-align: center; }
 
 /* ===== 음식 신호등 등급 ===== */
@@ -173,7 +175,10 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
   border: 1px solid #bcd0f7; border-radius: 999px; background: #eff6ff; color: #1d4ed8; font-size: 13px;
 }
 .food-chip:hover { background: #dbeafe; border-color: #1d4ed8; }
+.food-chip.favorite { border-color: #fcd34d; background: #fffbeb; color: #b45309; }
+.food-chip.favorite:hover { background: #fef3c7; border-color: #f59e0b; }
 .food-chip-kcal { color: #64748b; font-weight: 650; }
+.recent-foods-label { display: inline-flex; align-items: center; gap: 5px; }
 
 /* ===== 식단 기록 ===== */
 .calorie-preview { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1px solid #d7dde3; border-radius: 8px; background: #f8fafc; color: #334155; font-weight: 750; }

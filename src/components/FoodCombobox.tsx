@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Star } from 'lucide-react'
 import type { FoodResponse } from '../api'
 import { gradeMeta } from '../constants'
 
@@ -7,13 +8,22 @@ interface FoodComboboxProps {
   value: number | null
   onChange: (foodId: number | null) => void
   disabled?: boolean
+  favoriteIds?: number[]
+  onToggleFavorite?: (foodId: number) => void
 }
 
 /**
  * 음식명을 타이핑해 실시간으로 필터링하고 클릭으로 선택하는 검색형 콤보박스.
  * 기본 선택 없이 placeholder를 보여주며, datalist 대신 직접 구현해 동작이 일관적이다.
  */
-export function FoodCombobox({ foods, value, onChange, disabled }: FoodComboboxProps) {
+export function FoodCombobox({
+  foods,
+  value,
+  onChange,
+  disabled,
+  favoriteIds = [],
+  onToggleFavorite,
+}: FoodComboboxProps) {
   // draft가 null이면 "타이핑 안 함" → 선택된 음식명을 보여주고, 문자열이면 사용자가 입력 중.
   const [draft, setDraft] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
@@ -125,6 +135,28 @@ export function FoodCombobox({ foods, value, onChange, disabled }: FoodComboboxP
                 </span>
                 <span className="combobox-meta">
                   {food.calories}kcal / {food.servingSize}
+                  {onToggleFavorite && (
+                    <button
+                      type="button"
+                      className={
+                        'fav-toggle' + (favoriteIds.includes(food.foodId) ? ' on' : '')
+                      }
+                      aria-label={favoriteIds.includes(food.foodId) ? '즐겨찾기 해제' : '즐겨찾기'}
+                      onPointerDown={(event) => {
+                        // 별표 클릭은 음식 선택/닫힘으로 이어지지 않게 막는다.
+                        event.preventDefault()
+                        event.stopPropagation()
+                        onToggleFavorite(food.foodId)
+                      }}
+                    >
+                      <Star
+                        size={15}
+                        fill={favoriteIds.includes(food.foodId) ? '#f59e0b' : 'none'}
+                        stroke={favoriteIds.includes(food.foodId) ? '#f59e0b' : '#94a3b8'}
+                        aria-hidden="true"
+                      />
+                    </button>
+                  )}
                 </span>
               </li>
             ))

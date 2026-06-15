@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Apple, CalendarDays, Pencil, Trash2, X } from 'lucide-react'
+import { Apple, CalendarDays, Pencil, Star, Trash2, X } from 'lucide-react'
 import { api } from '../api'
 import type { DailyMealLogResponse, MealLogResponse, MealType } from '../api'
 import { goalLabels, gradeMeta, localDateString, mealLabels } from '../constants'
@@ -15,9 +15,12 @@ const MEAL_ORDER: MealType[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK']
 const RECENT_FOODS_KEY = 'pdm.recentFoods'
 const RECENT_FOODS_MAX = 5
 
-function loadRecentFoodIds(): number[] {
+// 즐겨찾기 음식(별표로 상단 고정)
+const FAVORITE_FOODS_KEY = 'pdm.favoriteFoods'
+
+function loadIds(key: string): number[] {
   try {
-    const raw = localStorage.getItem(RECENT_FOODS_KEY)
+    const raw = localStorage.getItem(key)
     return raw ? (JSON.parse(raw) as number[]) : []
   } catch {
     return []
@@ -40,7 +43,8 @@ export function MealLogPage() {
   const [logs, setLogs] = useState<DailyMealLogResponse | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [isBusy, setIsBusy] = useState(false)
-  const [recentFoodIds, setRecentFoodIds] = useState<number[]>(loadRecentFoodIds)
+  const [recentFoodIds, setRecentFoodIds] = useState<number[]>(() => loadIds(RECENT_FOODS_KEY))
+  const [favoriteIds, setFavoriteIds] = useState<number[]>(() => loadIds(FAVORITE_FOODS_KEY))
 
   // 최근 음식 목록 맨 앞에 추가(중복 제거, 최대 개수 유지) 후 localStorage에 저장.
   function pushRecentFood(id: number) {
@@ -51,13 +55,32 @@ export function MealLogPage() {
     })
   }
 
-  // 실제 음식 목록에 존재하는 최근 음식만 칩으로 노출한다.
+  // 즐겨찾기 토글(별표) 후 localStorage에 저장.
+  function toggleFavorite(id: number) {
+    setFavoriteIds((prev) => {
+      const next = prev.includes(id) ? prev.filter((value) => value !== id) : [...prev, id]
+      localStorage.setItem(FAVORITE_FOODS_KEY, JSON.stringify(next))
+      return next
+    })
+  }
+
+  // 실제 음식 목록에 존재하는 즐겨찾기 음식만 칩으로 노출한다.
+  const favoriteFoods = useMemo(
+    () =>
+      favoriteIds
+        .map((id) => foods.find((food) => food.foodId === id))
+        .filter((food): food is NonNullable<typeof food> => Boolean(food)),
+    [favoriteIds, foods],
+  )
+
+  // 최근 음식은 즐겨찾기와 중복되지 않게 제외해 칩으로 노출한다.
   const recentFoods = useMemo(
     () =>
       recentFoodIds
+        .filter((id) => !favoriteIds.includes(id))
         .map((id) => foods.find((food) => food.foodId === id))
         .filter((food): food is NonNullable<typeof food> => Boolean(food)),
-    [recentFoodIds, foods],
+    [recentFoodIds, favoriteIds, foods],
   )
 
   const selectedFood = useMemo(
@@ -210,6 +233,35 @@ export function MealLogPage() {
             기록을 수정하는 중입니다.
           </p>
         )}
+        {!isEditing && favoriteFoods.length > 0 && (
+          <div className="recent-foods wide">
+            <span className="recent-foods-label">
+              <Star size={13} fill="#f59e0b" stroke="#f59e0b" aria-hidden="true" /> 즐겨찾기 ·{' '}
+              {mealLabels[mealType]}에 바로 추가
+            </span>
+            <div className="recent-foods-chips">
+              {favoriteFoods.map((food) => (
+                <button
+                  type="button"
+                  key={food.foodId}
+                  className="food-chip favorite"
+                  onClick={() => quickAdd(food.foodId)}
+                  disabled={isBusy}
+                >
+                  {food.grade && (
+                    <span
+                      className="grade-dot"
+                      style={{ background: gradeMeta[food.grade].color }}
+                      aria-label={gradeMeta[food.grade].label}
+                    />
+                  )}
+                  + {food.name}
+                  <span className="food-chip-kcal">{food.calories}kcal</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         {!isEditing && recentFoods.length > 0 && (
           <div className="recent-foods wide">
             <span className="recent-foods-label">
@@ -259,6 +311,8 @@ export function MealLogPage() {
             value={foodId}
             onChange={setFoodId}
             disabled={!foods.length}
+            favoriteIds={favoriteIds}
+            onToggleFavorite={toggleFavorite}
           />
           {profile && foods.some((food) => food.grade) && (
             <span className="grade-legend">
