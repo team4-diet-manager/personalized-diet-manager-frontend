@@ -5,6 +5,22 @@ export type MealType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK'
 export type ExerciseType = 'WALKING' | 'RUNNING' | 'CYCLING' | 'WEIGHT_TRAINING' | 'SWIMMING'
 export type Intensity = 'LOW' | 'MEDIUM' | 'HIGH'
 
+export interface SignupRequest {
+  email: string
+  password: string
+  nickname: string
+}
+
+export interface LoginRequest {
+  email: string
+  password: string
+}
+
+export interface TokenResponse {
+  accessToken: string
+  tokenType: string
+}
+
 export interface UserProfileRequest {
   name: string
   gender: Gender
@@ -169,14 +185,18 @@ export function isProfileMissing(error: unknown): boolean {
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
+export const TOKEN_STORAGE_KEY = 'pdm.token'
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response
+  const token = localStorage.getItem(TOKEN_STORAGE_KEY)
+  const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {}
 
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       headers: {
         'Content-Type': 'application/json',
+        ...authHeaders,
         ...init?.headers,
       },
       ...init,
@@ -186,6 +206,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      localStorage.removeItem(TOKEN_STORAGE_KEY)
+      window.location.href = '/login'
+    }
     const error = (await response.json().catch(() => ({}))) as ErrorResponse
     const fieldMessage = error.fieldErrors?.map((item) => item.message).join('\n')
     throw new ApiError(
@@ -198,21 +222,38 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     return undefined as T
   }
 
-  return response.json().catch(() => {
+  const text = await response.text()
+  if (!text) {
+    return undefined as T
+  }
+
+  try {
+    return JSON.parse(text) as T
+  } catch {
     throw new Error('서버 응답을 읽을 수 없습니다.')
-  }) as Promise<T>
+  }
 }
 
 export const api = {
+  signup: (body: SignupRequest) =>
+    request<void>('/api/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  login: (body: LoginRequest) =>
+    request<TokenResponse>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
   createProfile: (body: UserProfileRequest) =>
     request<UserProfileResponse>('/api/profiles', {
       method: 'POST',
       body: JSON.stringify(body),
     }),
-  getProfile: (profileId: number) =>
-    request<UserProfileResponse>(`/api/profiles/${profileId}`),
-  updateProfile: (profileId: number, body: UserProfileRequest) =>
-    request<UserProfileResponse>(`/api/profiles/${profileId}`, {
+  getProfile: () =>
+    request<UserProfileResponse>('/api/profiles/me'),
+  updateProfile: (body: UserProfileRequest) =>
+    request<UserProfileResponse>('/api/profiles/me', {
       method: 'PUT',
       body: JSON.stringify(body),
     }),
@@ -237,13 +278,13 @@ export const api = {
     request<void>(`/api/meal-logs/${mealLogId}`, {
       method: 'DELETE',
     }),
-  getDailyMealLogs: (profileId: number, date: string) =>
-    request<DailyMealLogResponse>(`/api/meal-logs?profileId=${profileId}&date=${date}`),
-  getDailyReport: (profileId: number, date: string) =>
-    request<DailyReportResponse>(`/api/reports/daily?profileId=${profileId}&date=${date}`),
-  getWeeklyReport: (profileId: number, endDate: string) =>
+  getDailyMealLogs: (date: string) =>
+    request<DailyMealLogResponse>(`/api/meal-logs?date=${date}`),
+  getDailyReport: (date: string) =>
+    request<DailyReportResponse>(`/api/reports/daily?date=${date}`),
+  getWeeklyReport: (endDate: string) =>
     request<WeeklyReportResponse>(
-      `/api/reports/weekly?profileId=${profileId}&endDate=${endDate}`,
+      `/api/reports/weekly?endDate=${endDate}`,
     ),
   getStats: (profileId: number, endDate: string) =>
     request<StatsResponse>(`/api/reports/stats?profileId=${profileId}&endDate=${endDate}`),

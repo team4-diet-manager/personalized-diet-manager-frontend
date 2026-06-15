@@ -27,7 +27,7 @@ export function DashboardPage() {
       }
       setIsLoading(true)
       try {
-        const daily = await api.getDailyReport(profile.profileId, targetDate)
+        const daily = await api.getDailyReport(targetDate)
         setReport(daily)
         setNotice(null)
       } catch (error) {
@@ -43,7 +43,7 @@ export function DashboardPage() {
 
       // 주간 추이·통계는 실패해도 일일 리포트 표시에 영향을 주지 않도록 분리한다.
       try {
-        const week = await api.getWeeklyReport(profile.profileId, targetDate)
+        const week = await api.getWeeklyReport(targetDate)
         setWeekly(week)
       } catch {
         setWeekly(null)

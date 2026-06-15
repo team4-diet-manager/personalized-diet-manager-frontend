@@ -104,7 +104,7 @@ export function MealLogPage() {
       if (!profile) {
         return
       }
-      const data = await api.getDailyMealLogs(profile.profileId, targetDate)
+      const data = await api.getDailyMealLogs(targetDate)
       setLogs(data)
     },
     [profile],

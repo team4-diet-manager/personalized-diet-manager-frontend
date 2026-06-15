@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Activity, Calculator, Utensils } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 const STEPS = [
   { icon: Calculator, title: '목표별 권장 칼로리', desc: '다이어트·벌크업·유지에 맞춰 하루 권장량을 계산해요.' },
@@ -9,6 +10,15 @@ const STEPS = [
 
 export function OnboardingPage() {
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
+
+  const handleStart = () => {
+    if (isAuthenticated) {
+      navigate('/goal')
+    } else {
+      navigate('/login')
+    }
+  }
 
   return (
     <div className="onboarding">
@@ -20,7 +30,7 @@ export function OnboardingPage() {
           식단 · 칼로리 관리
         </h1>
         <p>신체 정보와 목표를 입력하면, 목표별 전략에 맞는 권장 칼로리와 탄단지 구성을 알려드려요.</p>
-        <button type="button" className="cta" onClick={() => navigate('/goal')}>
+        <button type="button" className="cta" onClick={handleStart}>
           시작하기
           <ArrowRight size={18} aria-hidden="true" />
         </button>
